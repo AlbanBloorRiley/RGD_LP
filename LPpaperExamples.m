@@ -21,7 +21,7 @@ problem.obj_fun = @IEP;
 feature('jit', 'off')
 clear all
 clf
-N = 50;
+N = 25;
 vec = zeros(1,N);
 vec(2) = -1;
 % problem.A0 =[ 0 -1 0 0 0; -1 0 -1 0 0;0 -1 0 -1 0;0 0 -1 0 -1;0 0 0 -1 0];
@@ -41,7 +41,7 @@ epsilon = 0.00; doubled = false; Opt = [];
 % F,ek 
 % Opt.Regularisation = @(NIter,X)max(max(X.J))/max(max(diag(diag(X.J'*X.J))))/(NIter);
 N = 200;
-repeats = 200;
+repeats = 2;
 times = zeros(1,N);
 timesOG = zeros(repeats,N);
 timesNew = zeros(repeats,N);
