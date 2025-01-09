@@ -21,7 +21,7 @@ problem.obj_fun = @IEP; problem.Solver = @mldivide;
 feature('jit', 'off')
 clear all
 clf
-N = 25;
+N = 5;
 vec = zeros(1,N);
 vec(2) = -1;
 % problem.A0 =[ 0 -1 0 0 0; -1 0 -1 0 0;0 -1 0 -1 0;0 0 -1 0 -1;0 0 0 -1 0];
@@ -40,8 +40,8 @@ epsilon = 0.00; doubled = false; Opt = [];
 % [x,ek,Eigs,F,LPIterations,NewtonIterations] =LP_Newton(problem,epsilon,LPSteps,Opt,doubled);
 % F,ek 
 % Opt.Regularisation = @(NIter,X)max(max(X.J))/max(max(diag(diag(X.J'*X.J))))/(NIter);
-N = 200;
-repeats = 2;
+N = 250;
+repeats = 1000;
 times = zeros(1,N);
 timesOG = zeros(repeats,N);
 timesNew = zeros(repeats,N);
@@ -53,7 +53,7 @@ NIterChangeNew = [];
 for  i = 1:repeats
     for LPSteps = 1:N
         tic
-        [LPIterations,NewtonIterations]=Old_LP_Newton(problem,0,LPSteps,Inf);
+        [LPIterations,NewtonIterations]=Old_LP_Newton(problem,0,LPSteps,1e2);
         timesOG(i,LPSteps) = toc;
         if i==repeats
             if NewtonIterOG > NewtonIterations.NIter
@@ -64,7 +64,7 @@ for  i = 1:repeats
     end
     for  LPSteps = 1:N
         tic
-        [LPIterations,NewtonIterations]=RGD_LP_Newton(problem,0,LPSteps,Inf,false);
+        [LPIterations,NewtonIterations]=RGD_LP_Newton(problem,0,LPSteps,1e2,false);
         timesNew(i,LPSteps) =  toc;
         if i==repeats
             if NewtonIterNew > NewtonIterations.NIter
@@ -75,7 +75,7 @@ for  i = 1:repeats
     end
     timesNew(LPSteps) = timesNew(LPSteps)+ toc;
 end
-%%
+%
 
 clf
 % sum(sum(timesOG))
