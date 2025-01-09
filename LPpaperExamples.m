@@ -16,7 +16,7 @@ problem.x0 = [0.63160, 0.23780, 0.90920, 0.98660, 0.50070]';
 % problem.x0 = randn([N,1]);
 problem.ev =  [1, 1, 2, 3, 4]';
 % problem.ev = 1:N;
-problem.obj_fun = @IEP;
+problem.obj_fun = @IEP; problem.Solver = @mldivide;
 %% Example 1 bigger
 feature('jit', 'off')
 clear all
@@ -33,7 +33,7 @@ end
 problem.x0 = ones(N,1);
 % % problem.ev =  [1, 1, 2, 3, 4]';
 problem.ev = (1:N)';
-problem.obj_fun = @IEP;
+problem.obj_fun = @IEP; problem.Solver = @mldivide;
 
 %%
 epsilon = 0.00; doubled = false; Opt = [];
