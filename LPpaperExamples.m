@@ -9,7 +9,7 @@ vec(2) = -1;
 % problem.A0 =[ 0 -1 0 0 0; -1 0 -1 0 0;0 -1 0 -1 0;0 0 -1 0 -1;0 0 0 -1 0];
 problem.A0 = toeplitz(vec);
 for k = 1:N
-     D= zeros(N,1); D(k) = 4;
+    D= zeros(N,1); D(k) = 4;
     problem.A{k} =  diag(D);
 end
 problem.x0 = [0.63160, 0.23780, 0.90920, 0.98660, 0.50070]';
@@ -27,7 +27,7 @@ vec(2) = -1;
 % problem.A0 =[ 0 -1 0 0 0; -1 0 -1 0 0;0 -1 0 -1 0;0 0 -1 0 -1;0 0 0 -1 0];
 problem.A0 = toeplitz(vec);
 for k = 1:N
-     D= zeros(N,1); D(k) = 4;
+    D= zeros(N,1); D(k) = 4;
     problem.A{k} =  diag(D);
 end
 problem.x0 = ones(N,1);
@@ -38,7 +38,7 @@ problem.obj_fun = @IEP; problem.Solver = @mldivide;
 %%
 epsilon = 0.00; doubled = false; Opt = [];
 % [x,ek,Eigs,F,LPIterations,NewtonIterations] =LP_Newton(problem,epsilon,LPSteps,Opt,doubled);
-% F,ek 
+% F,ek
 % Opt.Regularisation = @(NIter,X)max(max(X.J))/max(max(diag(diag(X.J'*X.J))))/(NIter);
 N = 250;
 repeats = 1000;
@@ -121,7 +121,7 @@ clear all
 clf
 problem.A0 =zeros(20);
 for k = 1:20
-     D= zeros(20,1); D(k) = 1;
+    D= zeros(20,1); D(k) = 1;
     problem.A{k} =  toeplitz(D);
 end
 problem.x0 = [1.1650, 0.6268, 0.0751, 0.3516, -0.6965, 1.6961, 0.0591, 1.7971, ...
@@ -135,39 +135,39 @@ repeats = 1;
 problem.Solver = @lsqminnorm;
 tic
 for i = 1:repeats
-[~,OnlyNewtonIterations] =RGD_LP_Newton(problem,epsilon,LPSteps,500,doubled);
+    [~,OnlyNewtonIterations] =RGD_LP_Newton(problem,epsilon,LPSteps,500,doubled);
 end
 NewtonTime = toc/repeats;
 ek1 = vecnorm(OnlyNewtonIterations.Iterates(:,2:end)-OnlyNewtonIterations.Iterates(:,1:end-1),2,1);
-epsilon = 0.01; LPSteps = inf; 
+epsilon = 0.01; LPSteps = inf;
 tic
 for i = 1:repeats
-[LPIterations01,NewtonIterations01] = RGD_LP_Newton(problem,epsilon,LPSteps,Inf,doubled);
+    [LPIterations01,NewtonIterations01] = RGD_LP_Newton(problem,epsilon,LPSteps,Inf,doubled);
 end
 New01Time = toc/repeats;
 Iterates01 = [LPIterations01.Iterates,NewtonIterations01.Iterates(:,2:end)];
 ek2 = vecnorm(Iterates01(:,2:end)-Iterates01(:,1:end-1),2,1);
-epsilon = 0.001; 
+epsilon = 0.001;
 tic
 for i = 1:repeats
-[LPIterations001,NewtonIterations001] =RGD_LP_Newton(problem,epsilon,LPSteps,Inf,doubled);
+    [LPIterations001,NewtonIterations001] =RGD_LP_Newton(problem,epsilon,LPSteps,Inf,doubled);
 end
 New001Time  = toc/repeats;
 Iterates001 = [LPIterations001.Iterates,NewtonIterations001.Iterates(:,2:end)];
 ek3 = vecnorm(Iterates001(:,2:end)-Iterates001(:,1:end-1),2,1);
 
-epsilon = 0.01;  
+epsilon = 0.01;
 tic
 for i = 1:repeats
-[oldLPIterations01,oldNewtonIterations01] =Old_LP_Newton(problem,epsilon,LPSteps,Inf);
+    [oldLPIterations01,oldNewtonIterations01] =Old_LP_Newton(problem,epsilon,LPSteps,Inf);
 end
 Old01Time  = toc/repeats;
 oldIterates01 = [oldLPIterations01.Iterates,oldNewtonIterations01.Iterates(:,2:end)];
 ek4 = vecnorm(oldIterates01(:,2:end)-oldIterates01(:,1:end-1),2,1);
-epsilon = 0.001; 
+epsilon = 0.001;
 tic
 for i = 1:repeats
-[oldLPIterations001,oldNewtonIterations001,x,F,ek,Eigs] =Old_LP_Newton(problem,epsilon,LPSteps,Inf);
+    [oldLPIterations001,oldNewtonIterations001,x,F,ek,Eigs] =Old_LP_Newton(problem,epsilon,LPSteps,Inf);
 end
 Old001Time  = toc/repeats;
 oldIterates001 = [oldLPIterations001.Iterates,oldNewtonIterations001.Iterates(:,2:end)];
@@ -176,12 +176,12 @@ ek5 = vecnorm(oldIterates001(:,2:end)-oldIterates001(:,1:end-1),2,1);
 
 
 ["Algorithm", "No. Iterations","CPU Time (seconds)";...
-  "Newton", OnlyNewtonIterations.NIter, NewtonTime ;...    
-  "Old LP-Newton, \epsilon = 0.01", string(oldLPIterations01.NIter+"+"+oldNewtonIterations01.NIter),Old01Time;...
-  "Old LP-Newton, \epsilon = 0.001", string(oldLPIterations001.NIter+"+"+oldNewtonIterations001.NIter),Old001Time;...
-  "New LP-Newton, \epsilon = 0.01", string(LPIterations01.NIter+"+"+NewtonIterations01.NIter),New01Time;...
-  "New LP-Newton, \epsilon = 0.001", string(LPIterations001.NIter+"+"+NewtonIterations001.NIter),New001Time
-]
+    "Newton", OnlyNewtonIterations.NIter, NewtonTime ;...
+    "Old LP-Newton, \epsilon = 0.01", string(oldLPIterations01.NIter+"+"+oldNewtonIterations01.NIter),Old01Time;...
+    "Old LP-Newton, \epsilon = 0.001", string(oldLPIterations001.NIter+"+"+oldNewtonIterations001.NIter),Old001Time;...
+    "New LP-Newton, \epsilon = 0.01", string(LPIterations01.NIter+"+"+NewtonIterations01.NIter),New01Time;...
+    "New LP-Newton, \epsilon = 0.001", string(LPIterations001.NIter+"+"+NewtonIterations001.NIter),New001Time
+    ]
 
 
 f = figure(1);
@@ -200,7 +200,7 @@ print(f, 'Example2.eps', '-depsc')
 
 
 
-%% Example 3 
+%% Example 3
 clear problem
 problem.A0 =zeros(16);
 T = [4 -1 0 0 ;-1 4 -1 0; 0 -1 4 -1; 0 0 -1 4];
@@ -208,7 +208,7 @@ E = -eye(4);
 A = [T E zeros(4) zeros(4); E T E zeros(4); zeros(4) E T E; zeros(4) zeros(4) E T];
 L = chol(A,'lower');
 for k = 1:16
-     D= zeros(16,1); D(k) = 1;
+    D= zeros(16,1); D(k) = 1;
     problem.A{k} =  L'*diag(D)*L;
 end
 problem.x0 = [1.5578, -2.4443, -1.0982, 1.1226, 0.5817,-0.2714, 0.4142, -0.9778,...
@@ -217,18 +217,18 @@ problem.ev =  [1, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50]';
 
 %RGD_LP_Newton(problem,epsilon,LPSteps,Inf,false);
 
-repeats = 100;
+repeats = 1;
 LPSteps = 0; doubled = false; problem.obj_fun = @IEP; problem.Solver = @mldivide;
 tic
 for i = 1:repeats
-[~,OnlyNewtonIterations] =RGD_LP_Newton(problem,Inf,LPSteps,40,doubled);
+    [~,OnlyNewtonIterations] =RGD_LP_Newton(problem,Inf,LPSteps,40,doubled);
 end
 Newtontime = toc/repeats;
 ek1 = vecnorm(OnlyNewtonIterations.Iterates(:,2:end)-OnlyNewtonIterations.Iterates(:,1:end-1),2,1);
 epsilon = 0.01; LPSteps = 99;%Opt.MaxIter =Opt.MaxIter-LPSteps;
 tic
 for i = 1:repeats
-[LPIterations,NewtonIterations] =RGD_LP_Newton(problem,epsilon,LPSteps,Inf,doubled);
+    [LPIterations,NewtonIterations] =RGD_LP_Newton(problem,epsilon,LPSteps,Inf,doubled);
 end
 LPNewtontime = toc/repeats;
 Iterates = [LPIterations.Iterates,NewtonIterations.Iterates(:,2:end)];
@@ -236,7 +236,7 @@ ek2 = vecnorm(Iterates(:,2:end)-Iterates(:,1:end-1),2,1);
 
 tic
 for i = 1:repeats
-[OGLPIterations,OGNewtonIterations] =Old_LP_Newton(problem,epsilon,LPSteps,Inf);
+    [OGLPIterations,OGNewtonIterations] =Old_LP_Newton(problem,epsilon,LPSteps,Inf);
 end
 OGLPNewtontime = toc/repeats;
 OGIterates = [OGLPIterations.Iterates,OGNewtonIterations.Iterates(:,2:end)];
@@ -251,10 +251,10 @@ ek3 = vecnorm(OGIterates(:,2:end)-OGIterates(:,1:end-1),2,1);
 
 
 ["Algorithm", "No. Iterations","CPU Time (seconds)";...
-  "Newton", OnlyNewtonIterations.NIter, Newtontime ;...
-  "New LP-Newton", string(LPIterations.NIter+"+"+NewtonIterations.NIter),LPNewtontime;...
-  "OG LP-Newton", string(OGLPIterations.NIter+"+"+OGNewtonIterations.NIter),OGLPNewtontime]
-  % "LP-Newton", string(LPIterations001.NIter+"+"+NewtonIterations001.NIter),LPNew001tontime]
+    "Newton", OnlyNewtonIterations.NIter, Newtontime ;...
+    "New LP-Newton", string(LPIterations.NIter+"+"+NewtonIterations.NIter),LPNewtontime;...
+    "OG LP-Newton", string(OGLPIterations.NIter+"+"+OGNewtonIterations.NIter),OGLPNewtontime]
+% "LP-Newton", string(LPIterations001.NIter+"+"+NewtonIterations001.NIter),LPNew001tontime]
 %
 clf
 f=figure(1);
@@ -267,17 +267,17 @@ ylabel("log_{10}(error)")
 f.Units = 'centimeters';
 f.Position = [-50 10 20 14];
 linestyleorder('default')
-% print(f, 'Example3.eps', '-depsc')
+print(f, 'Example3.eps', '-depsc')
 %% Mn12 Example
 clear all
 rcm = 29979.2458;    % reciprocal cm to MHz
-meV = rcm*8.065;  
+meV = rcm*8.065;
 B20 = -0.0570*meV/3; %(D = 3*B02)
 B40 = (-2.78*10^-6)*meV;
 B44 = (-3.2*10^-6)*meV;
 B22 = (6.8*10^-4)*meV;
-x0 = round([B20;B40;B44;B22;-9.1192e+05],2,'significant'); % 
-Sys.S = 10; 
+
+Sys.S = 10;
 Sys.B2 = [B22 0 B20 0 0];        % B(k=2,q) with q = +2,+1,0,-1,-2
 Sys.B4 = [B44 0 0 0 B40 0 0 0 0];  % B(k=4,q) with q = +4,+3,+2,+1,0,-1,-2,-3,-4
 H = ham(Sys,[0,0,0]);  [~,E]=eig(H);
@@ -285,65 +285,146 @@ EE = diag(E);  Exp.ev=EE-EE(1);
 
 % A{5} = speye(length(EE));
 %The Stevens Operators
+
 A0 = sparse(21,21);
 A{1} = stev(10,[2,0]);
 A{2} = stev(10,[4,0]);
 A{3} = stev(10,[4,4]);
 A{4} = stev(10,[2,2]);
-A{5} = eye(21);
+
+
+% INSDifference = true;
+% if INSDifference
+% x0 = round([B20;B40;B44;B22;],2,'significant'); %
+% obj_fun = @INSEvaulateDifference;
+% else
+% x0 = round([B20;B40;B44;B22;-9.1192e+05],2,'significant'); %
+% A{5} = eye(21);
+% obj_fun = @INSEvaulate;
+% end
+
 constants.A = A;
 constants.ev = EE;
 constants.A0 = A0;
-obj_fun = @INSEvaulate;
-problem = constants; problem.obj_fun = obj_fun; problem.x0 = x0;
-[B,Binv] = FormB(problem);
-Opt = struct('NDeflations',1,'Verbose',false,'constants',problem,'Method',"UGradientDescent","ScalingMatrix",Binv,...
-    'ObjectiveTolerance',0,'StepTolerance',1e-10,'MaxIter',1000000,'Linesearch','No');
+
+problem = constants; problem.obj_fun = @INSEvaulateDifference; problem.x0 = round([B20;B40;B44;B22;],2,'significant');
+problem.Solver = @mldivide;
+
+% [B,Binv] = FormB(problem);
+repeats = 5;
+
+
+
+epsilon = 1e-8; LPSteps = Inf; doubled = false; NewtonSteps = 0;
 tic
-newIterations = DMin(obj_fun,problem.x0,Opt);
-LPnewTime = toc;
+for i = 1:repeats
+    [newIterationsDifference,~] = RGD_LP_Newton(problem,epsilon,LPSteps,NewtonSteps,doubled);
+end
+LPnewTimeDifference = toc/repeats;
+ekLPnewDifference = vecnorm(newIterationsDifference.Iterates(:,2:end)-newIterationsDifference.Iterates(:,1:end-1),2,1);
+%
+tic
+for i = 1:repeats
+    oldIterationsDifference = Old_LP_Newton(problem,epsilon,LPSteps,NewtonSteps);
+end
+LPoldTimeDifference = toc/repeats;
+ekLPoldDifference = vecnorm(oldIterationsDifference.Iterates(:,2:end)-oldIterationsDifference.Iterates(:,1:end-1),2,1);
+
+epsilon = 0.01; LPSteps = Inf; doubled = false; NewtonSteps = Inf;
+tic
+for i = 1:repeats
+    [newLPIterationsDifference,newNewtonIterationsDifference] =RGD_LP_Newton(problem,epsilon,LPSteps,NewtonSteps,doubled);
+end
+LPNnewTimeDifference =toc/repeats;
+newIteratesDifference = [newLPIterationsDifference.Iterates,newNewtonIterationsDifference.Iterates(:,2:end)];
+ekLPNnewDifference = vecnorm(newIteratesDifference(:,2:end)-newIteratesDifference(:,1:end-1),2,1);
+
+
+
+problem.obj_fun = @INSEvaulate;
+problem.A{5} = eye(21); problem.x0(end+1) = -1e6;
+epsilon = 1e-8; LPSteps = Inf; doubled = false; NewtonSteps = 0;
+tic
+for i = 1:repeats
+    [newIterations,~] = RGD_LP_Newton(problem,epsilon,LPSteps,NewtonSteps,doubled);
+end
+LPnewTime = toc/repeats;
 ekLPnew = vecnorm(newIterations.Iterates(:,2:end)-newIterations.Iterates(:,1:end-1),2,1);
 %
-Opt = struct('NDeflations',1,'Verbose',false,'constants',problem,'Method',"LP","ScalingMatrix",Binv,...
-    'ObjectiveTolerance',0,'StepTolerance',1e-10,'MaxIter',1000,'Linesearch','No');
 tic
-oldIterations = DMin(obj_fun,problem.x0,Opt);
-LPoldTime = toc;
+for i = 1:repeats
+    oldIterations = Old_LP_Newton(problem,epsilon,LPSteps,NewtonSteps);
+end
+LPoldTime = toc/repeats;
 ekLPold = vecnorm(oldIterations.Iterates(:,2:end)-oldIterations.Iterates(:,1:end-1),2,1);
 
-epsilon = 0.01; LPSteps = inf; doubled = false;
+epsilon = 0.01; LPSteps = Inf; doubled = false; NewtonSteps = Inf;
 tic
-[~,~,~,~,newLPIterations,newNewtonIterations] =LP_Newton(problem,epsilon,LPSteps,Opt,doubled,0);
-LPNnewTime =toc;
+for i = 1:repeats
+    [newLPIterations,newNewtonIterations] =RGD_LP_Newton(problem,epsilon,LPSteps,NewtonSteps,doubled);
+end
+LPNnewTime =toc/repeats;
 newIterates = [newLPIterations.Iterates,newNewtonIterations.Iterates(:,2:end)];
 ekLPNnew = vecnorm(newIterates(:,2:end)-newIterates(:,1:end-1),2,1);
 
-tic
-[~,~,~,~,oldLPIterations,oldNewtonIterations] =LP_Newton(problem,epsilon,LPSteps,Opt,doubled,1);
-LPNoldTime =toc;
-oldIterates = [oldLPIterations.Iterates,oldNewtonIterations.Iterates(:,2:end)];
-ekLPNold = vecnorm(oldIterates(:,2:end)-oldIterates(:,1:end-1),2,1);
-%
 
-[LPnewTime;LPoldTime;LPNnewTime;LPNoldTime]
-clf
+% [~,~,~,~,oldLPIterations,oldNewtonIterations] =LP_Newton(problem,epsilon,LPSteps,Opt,doubled,1);
+% LPNoldTime =toc;
+% oldIterates = [oldLPIterations.Iterates,oldNewtonIterations.Iterates(:,2:end)];
+% ekLPNold = vecnorm(oldIterates(:,2:end)-oldIterates(:,1:end-1),2,1);
+% %
+
+% [LPnewTime;LPoldTime;LPNnewTime]
+
 % hold on
 % semilogy(ekLPnew,LineWidth=1.2)
 % semilogy(ekLPold,LineWidth=1.2)
 % semilogy(ekLPNnew,LineWidth=1.2)
 % semilogy(ekLPNold,LineWidth=1.2)
 % set(gca, 'YScale', 'log')
-% hold off
+% hold off Difference
+f=figure(1);
+clf
 
-semilogy(vecnorm(oldIterations.Iterates-oldIterations.DeflatedPoint,2,1),LineWidth=1.2)
+semilogy(vecnorm(oldIterations.Iterates-oldIterations.FinalPoint,2,1),LineWidth=1.5)
 hold on
-semilogy(vecnorm(newIterations.Iterates-newIterations.DeflatedPoint,2,1),LineWidth=1.2)
-semilogy(vecnorm([newLPIterations.Iterates,newNewtonIterations.Iterates(:,2:end)]-newNewtonIterations.DeflatedPoint,2,1),LineWidth=1.2)
-semilogy(vecnorm([oldLPIterations.Iterates,oldNewtonIterations.Iterates(:,2:end)]-oldNewtonIterations.DeflatedPoint,2,1),LineWidth=1.2)
-
+semilogy(vecnorm(newIterations.Iterates-newIterations.FinalPoint,2,1),LineWidth=1.5)
+semilogy(vecnorm([newLPIterations.Iterates,newNewtonIterations.Iterates(:,2:end)]-newNewtonIterations.FinalPoint,2,1),LineWidth=1.5)
 set(gca, 'YScale', 'log')
 hold off
-% semilogy(1:length(ek1),ek1,1:length(ek2),ek2)
+title("Classic")
+legend({"RGD LP","Original LP","LP-Newton"},Location='ne')
+% ylim([1e-10,1e40])
+xlabel("The number of iterations")
+ylabel("log_{10}(error)")
+
+f.Units = 'centimeters';
+f.Position = [-50 10 20 14];
+setMarkerNumber(f.Children(2),20)
+linestyleorder('default')
+print(f, 'ExampleMn12Classic.eps', '-depsc')
+
+f=figure(2);
+clf
+semilogy(vecnorm(oldIterationsDifference.Iterates-oldIterationsDifference.FinalPoint,2,1),LineWidth=1.5)
+hold on
+semilogy(vecnorm(newIterationsDifference.Iterates-newIterationsDifference.FinalPoint,2,1),LineWidth=1.5)
+semilogy(vecnorm([newLPIterationsDifference.Iterates,newNewtonIterationsDifference.Iterates(:,2:end)]-newNewtonIterationsDifference.FinalPoint,2,1),LineWidth=1.5)
+set(gca, 'YScale', 'log')
+hold off
+title("Difference")
+legend({"RGD LP","Original LP","LP-Newton"},Location='ne')
+% ylim([1e-10,1e40])
+xlabel("The number of iterations")
+ylabel("log_{10}(error)")
+
+f.Units = 'centimeters';
+f.Position = [-50 10 20 14];
+setMarkerNumber(f.Children(2),20)
+linestyleorder('default')
+print(f, 'ExampleMn12Difference.eps', '-depsc')
+% print(f, 'ExampleMn12.eps', '-depsc')
+
 
 
 
@@ -355,18 +436,23 @@ hold off
 
 function [LPIterations,NewtonIterations,x,F,ek,Eigs] =RGD_LP_Newton(problem,epsilon,LPSteps,NewtonSteps,doubled)
 if LPSteps>0
- problem.MaxIter = LPSteps;  problem.StepTolerance = epsilon; problem.doubled = doubled;
-LPIterations = RGD_LP(problem);
-x1= LPIterations.FinalPoint;
+    problem.MaxIter = LPSteps;  problem.StepTolerance = epsilon; problem.doubled = doubled;
+    LPIterations = RGD_LP(problem);
+    x1= LPIterations.FinalPoint;
 else
     LPIterations=[];
     x1=problem.x0;
 end
-problem.MaxIter = NewtonSteps; problem.StepTolerance = 1e-8; problem.x0=x1;
-[NewtonIterations] = Newton(problem);
-
-x= NewtonIterations.FinalPoint;
-ek = norm(NewtonIterations.Iterates(:,end)-NewtonIterations.Iterates(:,end-1));
+if NewtonSteps>0
+    problem.MaxIter = NewtonSteps; problem.StepTolerance = 1e-8; problem.x0=x1;
+    [NewtonIterations] = Newton(problem);
+    x= NewtonIterations.FinalPoint;
+    ek = norm(NewtonIterations.Iterates(:,end)-NewtonIterations.Iterates(:,end-1));
+else
+    NewtonIterations = [];
+    x = x1;
+    ek = norm(LPIterations.Iterates(:,end)-LPIterations.Iterates(:,end-1));
+end
 [F]=problem.obj_fun(x,problem);
 Eigs = eig(full(FormA(x,problem.A,problem.A0)),'vector');
 end
@@ -374,18 +460,23 @@ end
 
 function [LPIterations,NewtonIterations,x,F,ek,Eigs] =Old_LP_Newton(problem,epsilon,LPSteps,NewtonSteps)
 if LPSteps>0
- problem.MaxIter = LPSteps; problem.StepTolerance = epsilon;
-LPIterations = OGLP(problem);
+    problem.MaxIter = LPSteps; problem.StepTolerance = epsilon;
+    LPIterations = OGLP(problem);
+    x1= LPIterations.FinalPoint;
 else
     LPIterations=[];
     x1=problem.x0;
 end
-x1= LPIterations.FinalPoint;
-problem.MaxIter = NewtonSteps; problem.StepTolerance = 1e-8; problem.x0=x1;
-[NewtonIterations] = Newton(problem);
-
-x= NewtonIterations.FinalPoint;
-ek = norm(NewtonIterations.Iterates(:,end)-NewtonIterations.Iterates(:,end-1));
+if NewtonSteps>0
+    problem.MaxIter = NewtonSteps; problem.StepTolerance = 1e-8; problem.x0=x1;
+    [NewtonIterations] = Newton(problem);
+    x= NewtonIterations.FinalPoint;
+    ek = norm(NewtonIterations.Iterates(:,end)-NewtonIterations.Iterates(:,end-1));
+else
+    NewtonIterations = [];
+    x = x1;
+    ek = norm(LPIterations.Iterates(:,end)-LPIterations.Iterates(:,end-1));
+end
 [F]=problem.obj_fun(x,problem);
 Eigs = eig(full(FormA(x,problem.A,problem.A0)),'vector');
 end
@@ -397,9 +488,9 @@ end
 function [x,ek,Eigs,F,LPIterations,NewtonIterations] =LP_Newton(problem,epsilon,LPSteps,Opt,doubled,original)
 [~,Binv] = FormB(problem);
 % if nargin>2 &&  varargin{1}
-if doubled 
+if doubled
     ScalingMatrix = 2*Binv;
-    else
+else
     ScalingMatrix = Binv;
 end
 
@@ -418,21 +509,21 @@ if ~isfield(Opt,'Linesearch')
     Opt.Linesearch = 'No';
 end
 
-Opt.SupressConvergedFlag = true; 
+Opt.SupressConvergedFlag = true;
 Opt.NDeflations = 1; Opt.constants = problem;
-if original 
-    Opt.Method = 'LP'; 
+if original
+    Opt.Method = 'LP';
 else
-    Opt.Method = 'UGradientDescent'; 
+    Opt.Method = 'UGradientDescent';
 end
 Opt.ScalingMatrix = ScalingMatrix; Opt.StepTolerance = epsilon; Opt.MaxIter = LPSteps;
-[~,LPIterations] = evalc('DMin(problem.obj_fun,problem.x0,Opt)'); 
+[~,LPIterations] = evalc('DMin(problem.obj_fun,problem.x0,Opt)');
 x1= LPIterations.DeflatedPoint;
 
-Opt.Method = 'UNewton'; Opt.ScalingMatrix = []; Opt.StepTolerance = 1e-10; 
+Opt.Method = 'UNewton'; Opt.ScalingMatrix = []; Opt.StepTolerance = 1e-10;
 Opt.MaxIter =NewtonMaxIter;
 for i = 1:1
-[NewtonIterations,res,params] = eval('DMin(problem.obj_fun,x1,Opt)');  
+    [NewtonIterations,res,params] = eval('DMin(problem.obj_fun,x1,Opt)');
 end
 x= NewtonIterations.DeflatedPoint;
 ek = norm(NewtonIterations.Iterates(:,end)-NewtonIterations.Iterates(:,end-1));
@@ -484,82 +575,86 @@ end
 end
 
 function [F,R,J,H] = INSEvaulateDifference(x,constants)
-A = constants.A; 
-    Ad = x(1)*A{1};
-    for i = 2:length(x)
-        Ad = Ad + x(i)*A{i};
+A = constants.A;
+Ad = x(1)*A{1};
+for i = 2:length(x)
+    Ad = Ad + x(i)*A{i};
+end
+[Q,D] = eig(full(Ad),'vector');
+D = D(1:length(constants.ev));
+Q = Q(:,1:length(constants.ev));
+R = ((D(2:end) - D(1:end-1)) - (constants.ev(2:end) - constants.ev(1:end-1)));
+F = sqrt(sum((R).^2));
+if nargout>2
+    l = length(A);
+    m = size(Q,2);
+    LJ = zeros(m,l);
+    for k = 1:l
+        LJ(:,k) =real(sum((Q.'*A{k}).*Q',2));
     end
-    [Q,D] = eig(full(Ad),'vector');
-    D = D(1:length(constants.ev));
-    Q = Q(:,1:length(constants.ev));
-    R = ((D(2:end) - D(1:end-1)) - (constants.ev(2:end) - constants.ev(1:end-1)));
-    F = sqrt(sum((R).^2));
-    if nargout>2
-        l = length(A);
-        m = size(Q,2);
-        LJ = zeros(m,l);
+    J = LJ(2:end,:) - LJ(1:end-1,:);
+end
+if nargout>3
+    m = length(constants.ev); l=length(A);
+    LH = zeros(l,l,m);
+    QAQ = cell(1,l);
+    for i = 1:l
+        QAQ{i} = Q'*A{i}*Q;
+        QAQ{i} =QAQ{i}(1:m,1:m);
+    end
+    DD=D'-D;
+    DD(abs(DD)<1e-15) = Inf;
+    for j=1:l
         for k = 1:l
-            LJ(:,k) =real(sum((Q.'*A{k}).*Q',2)); 
+            LH(k,j,:) = real(2*sum(QAQ{k}.*QAQ{j}./DD));
         end
-        J = LJ(2:end,:) - LJ(1:end-1,:);
     end
-    if nargout>3
-        m = length(constants.ev); l=length(A);
-        LH = zeros(l,l,m);
-        QAQ = cell(1,l);
-        for i = 1:l
-            QAQ{i} = Q'*A{i}*Q;
-            QAQ{i} =QAQ{i}(1:m,1:m);
-        end
-        DD=D'-D;
-        DD(abs(DD)<1e-15) = Inf;
-        for j=1:l
-            for k = 1:l
-                LH(k,j,:) = real(2*sum(QAQ{k}.*QAQ{j}./DD));
-            end
-        end
-        H = LH(:,:,2:end) - LH(:,:,1:end-1);
-    end
+    H = LH(:,:,2:end) - LH(:,:,1:end-1);
+end
 end
 
 function [F,R,J,H] = INSEvaulate(x,constants)
-A = constants.A; 
-    Ad = x(1)*A{1};
-    for i = 2:length(x)
-        Ad = Ad + x(i)*A{i};
+A = constants.A;
+Ad = x(1)*A{1};
+for i = 2:length(x)
+    Ad = Ad + x(i)*A{i};
+end
+[Q,D] = eig(full(Ad),'vector');
+D = D(1:length(constants.ev));
+Q = Q(:,1:length(constants.ev));
+F = sqrt(sum((D-constants.ev).^2));
+if nargout>1
+    R = (D-constants.ev);
+end
+if nargout>2
+    l = length(A);
+    m = size(Q,2);
+    J = zeros(m,l);
+    for k = 1:l
+        J(:,k) =real(sum((Q.'*A{k}).*Q',2));
     end
-    [Q,D] = eig(full(Ad),'vector');
-    D = D(1:length(constants.ev));
-    Q = Q(:,1:length(constants.ev));
-    F = sqrt(sum((D-constants.ev).^2));
-    if nargout>1
-        R = (D-constants.ev);
+end
+if nargout>3
+    m = length(constants.ev); l=length(A);
+    H = zeros(l,l,m);
+    QAQ = cell(1,l);
+    for i = 1:l
+        QAQ{i} = Q'*A{i}*Q;
+        QAQ{i} =QAQ{i}(1:m,1:m);
     end
-    if nargout>2
-        l = length(A);
-        m = size(Q,2);
-        J = zeros(m,l);
+    DD=D'-D;
+    DD(abs(DD)<1e-15) = Inf;
+    for j=1:l
         for k = 1:l
-            J(:,k) =real(sum((Q.'*A{k}).*Q',2)); 
-        end
-    end
-    if nargout>3
-        m = length(constants.ev); l=length(A);
-        H = zeros(l,l,m);
-        QAQ = cell(1,l);
-        for i = 1:l
-            QAQ{i} = Q'*A{i}*Q;
-            QAQ{i} =QAQ{i}(1:m,1:m);
-        end
-        DD=D'-D;
-        DD(abs(DD)<1e-15) = Inf;
-        for j=1:l
-            for k = 1:l
-                H(k,j,:) = real(2*sum(QAQ{k}.*QAQ{j}./DD));
-            end
+            H(k,j,:) = real(2*sum(QAQ{k}.*QAQ{j}./DD));
         end
     end
 end
+end
 % dlp=[0.8486, 0.8424, -0.0050, 0.3076, -0.5089, 1.6325, -0.0659,1.72764, -0.00038, 1.1018, -1.5155, -0.8286, 1.1952, -0.7433,0.0336, -0.0737, 0.0356, -1.5870, -0.1220, -0.2275]';
 
-
+function setMarkerNumber(f,n)
+    for i = 1:length(f.Children)
+        f.Children(i).MarkerIndices = 1:(floor(length(f.Children(i).MarkerIndices)/n)):f.Children(i).MarkerIndices(end);
+    end
+end
