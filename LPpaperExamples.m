@@ -259,7 +259,7 @@ ek3 = vecnorm(OGIterates(:,2:end)-OGIterates(:,1:end-1),2,1);
 clf
 f=figure(1);
 semilogy(1:length(ek1),ek1,1:length(ek2),ek2,1:length(ek3),ek3, LineWidth=1.5)
-legend({"Newton Method","LP-Newton New","LP-Newton Original"},Location='se')
+legend({"Newton Only","RGD LP-Newton ","LP-Newton "},Location='se')
 % ylim([1e-10,1e40])
 xlabel("The number of iterations")
 ylabel("log_{10}(error)")
@@ -292,7 +292,7 @@ A{2} = stev(10,[4,0]);
 A{3} = stev(10,[4,4]);
 A{4} = stev(10,[2,2]);
 
-
+%
 % INSDifference = true;
 % if INSDifference
 % x0 = round([B20;B40;B44;B22;],2,'significant'); %
@@ -306,39 +306,41 @@ A{4} = stev(10,[2,2]);
 constants.A = A;
 constants.ev = EE;
 constants.A0 = A0;
-
-problem = constants; problem.obj_fun = @INSEvaulateDifference; problem.x0 = round([B20;B40;B44;B22;],2,'significant');
+problem = constants; 
+problem.x0 = round([B20;B40;B44;B22;],2,'significant');
 problem.Solver = @mldivide;
-
-% [B,Binv] = FormB(problem);
 repeats = 5;
 
 
-
-epsilon = 1e-8; LPSteps = Inf; doubled = false; NewtonSteps = 0;
-tic
-for i = 1:repeats
-    [newIterationsDifference,~] = RGD_LP_Newton(problem,epsilon,LPSteps,NewtonSteps,doubled);
-end
-LPnewTimeDifference = toc/repeats;
-ekLPnewDifference = vecnorm(newIterationsDifference.Iterates(:,2:end)-newIterationsDifference.Iterates(:,1:end-1),2,1);
-%
-tic
-for i = 1:repeats
-    oldIterationsDifference = Old_LP_Newton(problem,epsilon,LPSteps,NewtonSteps);
-end
-LPoldTimeDifference = toc/repeats;
-ekLPoldDifference = vecnorm(oldIterationsDifference.Iterates(:,2:end)-oldIterationsDifference.Iterates(:,1:end-1),2,1);
-
-epsilon = 0.01; LPSteps = Inf; doubled = false; NewtonSteps = Inf;
-tic
-for i = 1:repeats
-    [newLPIterationsDifference,newNewtonIterationsDifference] =RGD_LP_Newton(problem,epsilon,LPSteps,NewtonSteps,doubled);
-end
-LPNnewTimeDifference =toc/repeats;
-newIteratesDifference = [newLPIterationsDifference.Iterates,newNewtonIterationsDifference.Iterates(:,2:end)];
-ekLPNnewDifference = vecnorm(newIteratesDifference(:,2:end)-newIteratesDifference(:,1:end-1),2,1);
-
+% problem.obj_fun = @INSEvaulateDifference; 
+% problem.x0 = round([B20;B40;B44;B22;],2,'significant');
+% problem.Solver = @mldivide;
+% % [B,Binv] = FormB(problem);
+% repeats = 5;
+% epsilon = 1e-8; LPSteps = Inf; doubled = false; NewtonSteps = 0;
+% tic
+% for i = 1:repeats
+%     [newIterationsDifference,~] = RGD_LP_Newton(problem,epsilon,LPSteps,NewtonSteps,doubled);
+% end
+% LPnewTimeDifference = toc/repeats;
+% ekLPnewDifference = vecnorm(newIterationsDifference.Iterates(:,2:end)-newIterationsDifference.Iterates(:,1:end-1),2,1);
+% %
+% tic
+% for i = 1:repeats
+%     oldIterationsDifference = Old_LP_Newton(problem,epsilon,LPSteps,NewtonSteps);
+% end
+% LPoldTimeDifference = toc/repeats;
+% ekLPoldDifference = vecnorm(oldIterationsDifference.Iterates(:,2:end)-oldIterationsDifference.Iterates(:,1:end-1),2,1);
+% 
+% epsilon = 0.01; LPSteps = Inf; doubled = false; NewtonSteps = Inf;
+% tic
+% for i = 1:repeats
+%     [newLPIterationsDifference,newNewtonIterationsDifference] =RGD_LP_Newton(problem,epsilon,LPSteps,NewtonSteps,doubled);
+% end
+% LPNnewTimeDifference =toc/repeats;
+% newIteratesDifference = [newLPIterationsDifference.Iterates,newNewtonIterationsDifference.Iterates(:,2:end)];
+% ekLPNnewDifference = vecnorm(newIteratesDifference(:,2:end)-newIteratesDifference(:,1:end-1),2,1);
+% 
 
 
 problem.obj_fun = @INSEvaulate;
@@ -368,21 +370,6 @@ newIterates = [newLPIterations.Iterates,newNewtonIterations.Iterates(:,2:end)];
 ekLPNnew = vecnorm(newIterates(:,2:end)-newIterates(:,1:end-1),2,1);
 
 
-% [~,~,~,~,oldLPIterations,oldNewtonIterations] =LP_Newton(problem,epsilon,LPSteps,Opt,doubled,1);
-% LPNoldTime =toc;
-% oldIterates = [oldLPIterations.Iterates,oldNewtonIterations.Iterates(:,2:end)];
-% ekLPNold = vecnorm(oldIterates(:,2:end)-oldIterates(:,1:end-1),2,1);
-% %
-
-% [LPnewTime;LPoldTime;LPNnewTime]
-
-% hold on
-% semilogy(ekLPnew,LineWidth=1.2)
-% semilogy(ekLPold,LineWidth=1.2)
-% semilogy(ekLPNnew,LineWidth=1.2)
-% semilogy(ekLPNold,LineWidth=1.2)
-% set(gca, 'YScale', 'log')
-% hold off Difference
 f=figure(1);
 clf
 
@@ -392,8 +379,7 @@ semilogy(vecnorm(newIterations.Iterates-newIterations.FinalPoint,2,1),LineWidth=
 semilogy(vecnorm([newLPIterations.Iterates,newNewtonIterations.Iterates(:,2:end)]-newNewtonIterations.FinalPoint,2,1),LineWidth=1.5)
 set(gca, 'YScale', 'log')
 hold off
-title("Classic")
-legend({"RGD LP","Original LP","LP-Newton"},Location='ne')
+legend({"RGD LP","LP","LP-Newton"},Location='ne')
 % ylim([1e-10,1e40])
 xlabel("The number of iterations")
 ylabel("log_{10}(error)")
@@ -402,29 +388,29 @@ f.Units = 'centimeters';
 f.Position = [-50 10 20 14];
 setMarkerNumber(f.Children(2),20)
 linestyleorder('default')
-print(f, 'ExampleMn12Classic.eps', '-depsc')
+print(f, 'ExampleMn12.eps', '-depsc')
 
-f=figure(2);
-clf
-semilogy(vecnorm(oldIterationsDifference.Iterates-oldIterationsDifference.FinalPoint,2,1),LineWidth=1.5)
-hold on
-semilogy(vecnorm(newIterationsDifference.Iterates-newIterationsDifference.FinalPoint,2,1),LineWidth=1.5)
-semilogy(vecnorm([newLPIterationsDifference.Iterates,newNewtonIterationsDifference.Iterates(:,2:end)]-newNewtonIterationsDifference.FinalPoint,2,1),LineWidth=1.5)
-set(gca, 'YScale', 'log')
-hold off
-title("Difference")
-legend({"RGD LP","Original LP","LP-Newton"},Location='ne')
-% ylim([1e-10,1e40])
-xlabel("The number of iterations")
-ylabel("log_{10}(error)")
-
-f.Units = 'centimeters';
-f.Position = [-50 10 20 14];
-setMarkerNumber(f.Children(2),20)
-linestyleorder('default')
-print(f, 'ExampleMn12Difference.eps', '-depsc')
-% print(f, 'ExampleMn12.eps', '-depsc')
-
+% f=figure(2);
+% clf
+% semilogy(vecnorm(oldIterationsDifference.Iterates-oldIterationsDifference.FinalPoint,2,1),LineWidth=1.5)
+% hold on
+% semilogy(vecnorm(newIterationsDifference.Iterates-newIterationsDifference.FinalPoint,2,1),LineWidth=1.5)
+% semilogy(vecnorm([newLPIterationsDifference.Iterates,newNewtonIterationsDifference.Iterates(:,2:end)]-newNewtonIterationsDifference.FinalPoint,2,1),LineWidth=1.5)
+% set(gca, 'YScale', 'log')
+% hold off
+% title("Difference")
+% legend({"RGD LP","Original LP","LP-Newton"},Location='ne')
+% % ylim([1e-10,1e40])
+% xlabel("The number of iterations")
+% ylabel("log_{10}(error)")
+% 
+% f.Units = 'centimeters';
+% f.Position = [-50 10 20 14];
+% setMarkerNumber(f.Children(2),20)
+% linestyleorder('default')
+% print(f, 'ExampleMn12Difference.eps', '-depsc')
+% % print(f, 'ExampleMn12.eps', '-depsc')
+% 
 
 
 
