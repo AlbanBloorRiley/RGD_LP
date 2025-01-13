@@ -14,14 +14,14 @@ while stop == false
     if constants.doubled
         p = p*2;
     end
-    xprev = x;
+    % xprev = x;
     x = x+p;
     
     NIter = NIter + 1;
     % Calculate residual, Jacobian of R
     [X.F,X.R,X.J] = obj_fun(x, constants); FuncCount = FuncCount +1;
 
-     [stop, CurrentLoop.ConvergenceFlag] = ismin(X.F, x-xprev, NIter, constants);
+     [stop, CurrentLoop.ConvergenceFlag] = ismin(X.F, p, NIter, constants);
     % Save iterates for plotting
     CurrentLoop.Iterates = [CurrentLoop.Iterates, x];
 end
