@@ -10,11 +10,11 @@ Binv = FormBinv(constants.A);
 % Main Loop
 while stop == false
 
-    [QFull,DFull] = eig(FormA(x,constants.A,constants.A0),'vector');
+    [QFull,DFull] = eig(full(FormA(x,constants.A,constants.A0)),'vector');
     
     if length(constants.ev)<length(DFull)
         C = (DFull'-constants.ev).^2;
-        pairs = matchpairs(C,1e10);
+        pairs = matchpairs(C,1e+307);
         % D = DFull(pairs(:,2));
         Dcomp = DFull;
         Dcomp(pairs(:,2))=[];
@@ -35,7 +35,9 @@ while stop == false
     end
     xprev = x;
     x = Binv*b;
-    % xRGD = xprev - Binv*X.J'*X.R;
+    % p1 = x-xprev;
+    % p= - Binv*X.J'*X.R;
+
     % [x,xRGD]
 
     NIter = NIter + 1;
