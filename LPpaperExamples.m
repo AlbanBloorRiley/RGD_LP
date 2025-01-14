@@ -1,43 +1,43 @@
 %% Example 1
 clear all
-clf
-N =21;
-problem.A0 =zeros(N);
+N =100;
+problem.A0 =sparse(zeros(N));
 for k = 1:N
     D= zeros(N,1); D(k) = 1;
-    problem.A{k} =  toeplitz(D);
+    problem.A{k} =  sparse(toeplitz(D));
 end
 % problem.x0 = [1.1650, 0.6268, 0.0751, 0.3516, -0.6965, 1.6961, 0.0591, 1.7971, ...
 %     0.2641, 0.8717, -1.4462, -0.7012, 1.2460, -0.6390, 0.5773, -0.3600,...
     % -0.1356, -1.3493, -1.2704, 0.9845]';
 problem.x0 = ones(N,1);
 problem.ev =  [-floor(N/4):ceil(N/4)]';
-
 epsilon = 0.00; LPSteps = 0;  doubled = false;  problem.obj_fun = @IEP;
 NSteps = 200;
 problem.StepTolerence = 1e-8;
 repeats = 1;
 problem.Solver = @mldivide;
+%
 tic
 for i = 1:repeats
     [~,OnlyNewtonIterations] =RGD_LP_Newton(problem,epsilon,LPSteps,500,doubled);
 end
 NewtonTime = toc/repeats;
 ek1 = vecnorm(OnlyNewtonIterations.Iterates(:,2:end)-OnlyNewtonIterations.Iterates(:,1:end-1),2,1);
-epsilon = 0.01; LPSteps = 200;
 %
+epsilon = 0.001; LPSteps = 1000;NSteps =0;
 tic
 for i = 1:repeats
-    [RGDLPIterations01,RGDNewtonIterations01] = RGD_LP_Newton(problem,epsilon,LPSteps,NSteps,doubled);
+    [RGDLPIterations01,RGDNewtonIterations01] = RGD_LP_Newton(problem,epsilon,LPSteps,NSteps);
 end
 RGDN01Time = toc/repeats;
+%
 RGDNIterates01 = [RGDLPIterations01.Iterates,RGDNewtonIterations01.Iterates(:,2:end)];
 ek2 = vecnorm(RGDNIterates01(:,2:end)-RGDNIterates01(:,1:end-1),2,1);
 %
 epsilon = 0.001;
 tic
 for i = 1:repeats
-    [RGDLPIterations001,RGDNewtonIterations001] =RGD_LP_Newton(problem,epsilon,LPSteps,NSteps,doubled);
+    [RGDLPIterations001,RGDNewtonIterations001] =RGD_LP_Newton(problem,epsilon,LPSteps,NSteps);
 end
 RGDN001Time  = toc/repeats;
 RGDNIterates001 = [RGDLPIterations001.Iterates,RGDNewtonIterations001.Iterates(:,2:end)];
@@ -78,7 +78,7 @@ plot(1:length(difference01),difference01,1:length(difference001),difference001)
     "New LP-Newton, \epsilon = 0.01", string(RGDLPIterations01.NIter+"+"+RGDNewtonIterations01.NIter),RGDN01Time;...
     "New LP-Newton, \epsilon = 0.001", string(RGDLPIterations001.NIter+"+"+RGDNewtonIterations001.NIter),RGDN001Time
     ]
-
+clf
 
 f = figure(1);
 semilogy(1:length(ek1),ek1,1:length(ek4),ek4,1:length(ek5),ek5,1:length(ek2),ek2,1:length(ek3),ek3, LineWidth=1.5)
@@ -93,6 +93,9 @@ f.Position = [-50 10 20 14];
 linestyleorder('default')
 print(f, 'Example2.eps', '-depsc')
 %
+
+%% Example 2
+
 
 
 
@@ -348,7 +351,8 @@ if LPSteps>0
     LPIterations = RGD_LP(problem);
     x1= LPIterations.FinalPoint;
 else
-    LPIterations=[];
+    LPIterations.Iterates=problem.x0;
+    LPIterations.NIter = 0;
     x1=problem.x0;
 end
 if NewtonSteps>0
@@ -357,7 +361,8 @@ if NewtonSteps>0
     x= NewtonIterations.FinalPoint;
     ek = norm(NewtonIterations.Iterates(:,end)-NewtonIterations.Iterates(:,end-1));
 else
-    NewtonIterations = [];
+    NewtonIterations.Iterates  =x1;
+    NewtonIterations.NIter = 0;
     x = x1;
     ek = norm(LPIterations.Iterates(:,end)-LPIterations.Iterates(:,end-1));
 end
@@ -372,7 +377,8 @@ if LPSteps>0
     LPIterations = OGLP(problem);
     x1= LPIterations.FinalPoint;
 else
-    LPIterations=[];
+    LPIterations.Iterates=problem.x0;
+    LPIterations.NIter = 0;
     x1=problem.x0;
 end
 if NewtonSteps>0
@@ -381,7 +387,8 @@ if NewtonSteps>0
     x= NewtonIterations.FinalPoint;
     ek = norm(NewtonIterations.Iterates(:,end)-NewtonIterations.Iterates(:,end-1));
 else
-    NewtonIterations = [];
+     NewtonIterations.Iterates  =x1;
+     NewtonIterations.NIter = 0;
     x = x1;
     ek = norm(LPIterations.Iterates(:,end)-LPIterations.Iterates(:,end-1));
 end
@@ -393,65 +400,12 @@ end
 
 
 
-function [x,ek,Eigs,F,LPIterations,NewtonIterations] =LP_Newton(problem,epsilon,LPSteps,Opt,doubled,original)
-[~,Binv] = FormB(problem);
-% if nargin>2 &&  varargin{1}
-if doubled
-    ScalingMatrix = 2*Binv;
-else
-    ScalingMatrix = Binv;
-end
-
-if isempty(Opt)
-    Opt = struct;
-end
-if isempty(LPSteps)
-    LPSteps = inf;
-end
-if isfield(Opt,'MaxIter')
-    NewtonMaxIter = Opt.MaxIter;
-else
-    NewtonMaxIter = 1e3;
-end
-if ~isfield(Opt,'Linesearch')
-    Opt.Linesearch = 'No';
-end
-
-Opt.SupressConvergedFlag = true;
-Opt.NDeflations = 1; Opt.constants = problem;
-if original
-    Opt.Method = 'LP';
-else
-    Opt.Method = 'UGradientDescent';
-end
-Opt.ScalingMatrix = ScalingMatrix; Opt.StepTolerance = epsilon; Opt.MaxIter = LPSteps;
-[~,LPIterations] = evalc('DMin(problem.obj_fun,problem.x0,Opt)');
-x1= LPIterations.DeflatedPoint;
-
-Opt.Method = 'UNewton'; Opt.ScalingMatrix = []; Opt.StepTolerance = 1e-10;
-Opt.MaxIter =NewtonMaxIter;
-for i = 1:1
-    [NewtonIterations,res,params] = eval('DMin(problem.obj_fun,x1,Opt)');
-end
-x= NewtonIterations.DeflatedPoint;
-ek = norm(NewtonIterations.Iterates(:,end)-NewtonIterations.Iterates(:,end-1));
-[F]=problem.obj_fun(x,problem);
-Eigs = eig(full(FormA(x,problem.A,problem.A0)),'vector');
-end
-
-
-function [B,Binv]= FormB(constants)
-B = zeros(length(constants.A));
-for i = 1:(length(constants.A))
-    for j = 1:(length(constants.A))
-        B(i,j) = sum(sum(constants.A{j}'.*constants.A{i}));
-    end
-end
-Binv = inv(B);
-end
-
-
 function [f,varargout] = IEP(x,constants)
+% 
+% if length(constants.A{1})<500 && length(constants.ev)<0.5*length(A{1}) &&nargout<4
+%     [QFull,DFull] = eigs(FormA(x,constants.A,constants.A0),length(constants.ev),constants.ev);
+% 
+
 [QFull,DFull] = eig(full(FormA(x,constants.A,constants.A0)),'vector');
 if any(isnan(DFull))
     f = nan;
@@ -527,7 +481,7 @@ Ad = x(1)*A{1};
 for i = 2:length(x)
     Ad = Ad + x(i)*A{i};
 end
-if length(A{1})>500 && length(constants.ev)<0.5*length(A{1})
+if length(A{1})>500 && length(constants.ev)<0.5*length(A{1}) &&nargout<4
     [Q,D] = eigs(Ad, length(constants.ev), 'smallestreal');
     D = diag(D);
 else
