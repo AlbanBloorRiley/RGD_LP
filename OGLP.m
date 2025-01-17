@@ -14,14 +14,15 @@ while stop == false
     
     if length(constants.ev)<length(DFull)
         C = (DFull'-constants.ev).^2;
-        pairs = matchpairs(C,1e+307);
+        pairs = matchpairs(C,100*max(max(C)));
         % D = DFull(pairs(:,2));
         Dcomp = DFull;
+        Dmatch = DFull(pairs(:,2));
         Dcomp(pairs(:,2))=[];
         Qmatch = QFull(:,pairs(:,2));
         Qcomp = QFull;
         Qcomp(:,pairs(:,2)) =[];
-        constants.ev = constants.ev((pairs(:,1)));
+        % constants.ev = constants.ev((pairs(:,1)));
         Q = [Qmatch,Qcomp];
     else
          Q = QFull;  %D = DFull;
@@ -35,8 +36,8 @@ while stop == false
     end
     xprev = x;
     x = Binv*b;
-    % p1 = x-xprev;
-    % p= - Binv*X.J'*X.R;
+    p1 = x-xprev;
+     p= - Binv*X.J'*X.R;
 
     % [x,xRGD]
 
