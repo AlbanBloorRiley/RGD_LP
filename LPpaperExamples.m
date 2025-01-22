@@ -256,7 +256,7 @@ for i = 2:N_electrons
     A{2} = A{2} + stev(Sys1.S,[2,0,i],'sparse');
 end   
 A{3} = ham_ee(Sys1,1:N_electrons,'sparse');
-A{4} = speye(size(A{1}));
+
 A0 = sparse(length(A{1}),length(A{1}));
 H=ham(Sys,[0,0,0],'sparse');
 [Vecs,EE] = eig(full(H),'vector');
@@ -265,28 +265,39 @@ Eigs=EE(1:24)-EE(1);
 problem.A = A; problem.ev = Eigs; problem.A0 = A0;
 problem.Solver = @mldivide;  problem.obj_fun = @INSEvaulate;
 
-f = figure(1);
-subplot(1,3,1)
-spy(problem.A{1})
-subplot(1,3,2)
-spy(problem.A{2})
-subplot(1,3,3)
-spy(problem.A{3})
+f = spyplots(1,3,A{1},A{2},A{3});
 f.Units = 'centimeters';
 f.Position = [-50 10 20 14];
 print(f, 'SpyPlots.eps', '-depsc')
+%%
+problem.x0 = [1692,-3304,3.53e5,5.21e6]';
+problem.x0 = [1000,-100,100,100000]';
+% problem.x0 = [1,1,1,1]';
 
-problem.x0 = [1e3,-1e3,1e5,1]';
-problem.x0 = [100,-100,1000,100000]';
-problem.x0 = [1,1,1,1]';
+% Eigs= eigs(FormA(problem.x0,problem.A,problem.A0),length(problem.ev),'smallestreal');
+problem.A{4} = speye(size(A{1}));
+% problem.x0(end+1) = 1000;
+% if Eigs(1)> 0
+%     problem.x0(end+1) = 0;
+% else
+%     problem.x0(end+1) = -Eigs(1);
+% end
+% eigratio = problem.ev(end)/(Eigs(end)+problem.x0(end));
+% if eigratio>1
+%     problem.x0 = problem.x0.*eigratio;
+% end
+
+
+
+
 % for i = 1:length(A)
 %     problem.A{i} = problem.A{i}*problem.x0(i);
 % problem.x0(i) = 1;
 % end
 
-%%
+%
 repeats = 1;
-epsilon = 1e0; LPSteps = 100; doubled = false; NewtonSteps = 0;
+epsilon = 1e-5; LPSteps = 100; doubled = false; NewtonSteps = 10;
 tic
 for i = 1:repeats
     % [LPIterations,NewtonIterations] = Old_LP_Newton(problem,epsilon,LPSteps,NewtonSteps);
@@ -310,12 +321,95 @@ LPnewTime = toc/repeats;
 
 
 
+%% Example 5 - Mn6 
+clear all
+rcm = 29979.2458;    % reciprocal cm to MHz
+meV = rcm*8.065;
+
+problem.ev = [ 0, 0.1414, 0.59070, 0.59070, 1.0841, 1.0841 , 1.0841, 1.4134, 1.4134, 2.316, 2.316, 2.316, 2.5218, 2.5218, 2.5218, 2.5218]';  
+
+Sys.S = [2 2 5/2 5/2 5/2 5/2]; % MnIII has S = 2, MnII has S = 5/2
+
+J_S4_S4   = -5*meV;    % MnIII - MnIII.                       Rodolphe: Strong and AFM.    Keep fixed.
+J_S4_S5_1 = 0.41*meV;  % MnIII - MnII, MnIII JT involved.     Rodolphe: Weak, FM or AFM.   Free value
+J_S4_S5_2 = -0.4*meV; % MnIII - MnII, MnIII JT not involved. Rodolphe: Weak and AFM.      Free value
+J_S5_S5   = -0.1*meV; 
+J_AB = J_S4_S4;
+J_A1 = J_S4_S5_1; J_A3 = J_S4_S5_1; J_B2 = J_S4_S5_1; J_B4 = J_S4_S5_1; %For these, the MnIII JT axis is involved. Can be FM or AFM
+J_A2 = J_S4_S5_2; J_A4 = J_S4_S5_2; J_B1 = J_S4_S5_2; J_B3 = J_S4_S5_2; %For these, the MnIII JT axis is NOT involved. Can only be AFM
+J_12 = J_S5_S5;   J_34 = J_S5_S5; 
+J_14 = -0.00.*meV;         J_23 = J_14; %Assumed zero. Only interacts via a pivalate bridge.
+J_13 = -0.00.*meV;         J_24 = J_13; 
+Sys.J = [J_AB J_A1 J_A2 J_A3 J_A4 J_B1 J_B2 J_B3 J_B4 J_12 J_13 J_14 J_23 J_24 J_34].*(-2); %-2JS.S formalism
+
+DIII = -0.029*meV; % MnIII anisotropy. Free Value 
+% DIII = -0.02*meV;
+
+EIII = 0*DIII;   % MnIII rhombicity. For INS, assume 0.
+B20III = 3*DIII; B22III = EIII; %Converting to Stevens Operator formalism
+
+
+DII = -0.00*meV; % MnII anisotropy. For INS, assume 0. 
+EII = DII*0;      % MnII rhombicity. For INS, assume 0.
+B20II = 3*DII; B22II = EII; %Converting to Stevens Operator formalism
+Sys.B2 = [B22III 0 B20III 0 0;
+          B22III 0 B20III 0 0;
+          B22II 0 B20II 0 0;
+          B22II 0 B20II 0 0;
+          B22II 0 B20II 0 0;
+          B22II 0 B20II 0 0];
+%%
+clear A
+Sys1.S = Sys.S;
+Sys1.J = [1,0 0 0 0 0 0 0 0 0 0 0 0 0 0];
+problem.A0 = ham_ee(Sys1,1:length(Sys1.S),'sparse');
+A{1} = stev(Sys1.S,[2,0,1],'sparse')+ stev(Sys1.S,[2,0,2],'sparse');
+% A{end+1} = stev(Sys1.S,[2,2,1],'sparse')+ stev(Sys1.S,[2,2,1],'sparse');
+Sys1.J = [0,1 0 1 0 0 1 0 1 0 0 0 0 0 0];
+A{end+1} = ham_ee(Sys1,1:length(Sys1.S),'sparse');
+Sys1.J = [0,0 1 0 1 1 0 1 0 0 0 0 0 0 0];
+A{end+1} = ham_ee(Sys1,1:length(Sys1.S),'sparse');
+Sys1.J = [0 0 0 0 0 0 0 0 0 1 0 0 0 0 1];
+A{end+1} = ham_ee(Sys1,1:length(Sys1.S),'sparse');
+
+problem.Solver = @mldivide;  problem.obj_fun = @INSEvaulate;
+f = spyplots(1,3,A{1},A{2},A{3});
+
+%%
+A{5} = speye(32400,32400);problem.A = A; 
+problem.x0 = [-21035 -1.9826e+05 1.9343e+05  48357 1]';
+
+%
+repeats = 1;
+epsilon = 1e-5; LPSteps = 10; doubled = false; NewtonSteps = 0;
+tic
+for i = 1:repeats
+    % [LPIterations,NewtonIterations] = Old_LP_Newton(problem,epsilon,LPSteps,NewtonSteps);
+    [LPIterations,NewtonIterations] = RGD_LP_Newton(problem,epsilon,LPSteps,NewtonSteps, doubled);
+end
+LPnewTime = toc/repeats;
+NewtonIterations
+%%
+
+epsilon = 1e-10; LPSteps = 10; doubled = false; NewtonSteps = 0;
+tic
+for i = 1:repeats
+    % [LPIterations,NewtonIterations] = O ld_LP_Newton(problem,epsilon,LPSteps,NewtonSteps);
+    [LPIterations,NewtonIterations] = LP_Newton(problem,epsilon,LPSteps,NewtonSteps);
+end
+LPnewTime = toc/repeats;
+
+
+
+% ekLPnew = vecnorm(newIterations.Iterates(:,2:end)-newIterations.Iterates(:,1:end-1),2,1);
+
+
 
 %% Aux Funcs
 
 
 
-function [LPIterations,NewtonIterations,x,F,ek,Eigs] =RGD_LP_Newton(problem,epsilon,LPSteps,NewtonSteps,varargin)
+function [LPIterations,NewtonIterations,x,F,ek] =RGD_LP_Newton(problem,epsilon,LPSteps,NewtonSteps,varargin)
 if ~isempty(varargin)
 problem.doubled = varargin{1};
 else
@@ -342,7 +436,7 @@ else
     ek = norm(LPIterations.Iterates(:,end)-LPIterations.Iterates(:,end-1));
 end
 [F]=problem.obj_fun(x,problem);
-Eigs = eig(full(FormA(x,problem.A,problem.A0)),'vector');
+% Eigs = eig(full(FormA(x,problem.A,problem.A0)),'vector');
 end
 
 
@@ -425,6 +519,55 @@ end
 if length(A{1})>500 && length(constants.ev)<0.5*length(A{1})&&nargout<4
     [Q,D] = eigs(Ad, length(constants.ev), 'smallestreal');
     D = diag(D);
+elseif nargout>4&&length(A{1})>5000
+else
+    [Q,D] = eigs((Ad),length(A{1}),'vector');
+    D = D(1:length(constants.ev));
+    Q = Q(:,1:length(constants.ev));
+end
+
+% D = D - D(1);
+
+
+F = sqrt(sum((D-constants.ev).^2));
+if nargout>1
+    R = (D-constants.ev);
+end
+if nargout>2
+    l = length(A);
+    m = size(Q,2);
+    J = zeros(m,l);
+    for k = 1:l
+        J(:,k) =real(sum((Q.'*A{k}).*Q',2));
+    end
+end
+if nargout>3
+    m = length(constants.ev); l=length(A);
+    H = zeros(l,l,m);
+    QAQ = cell(1,l);
+    for i = 1:l
+        QAQ{i} = Q'*A{i}*Q;
+        QAQ{i} =QAQ{i}(1:m,1:m);
+    end
+    DD=D'-D;
+    DD(abs(DD)<1e-15) = Inf;
+    for j=1:l
+        for k = 1:l
+            H(k,j,:) = real(2*sum(QAQ{k}.*QAQ{j}./DD));
+        end
+    end
+end
+end
+
+function [F,R,J,H] = INSEvaulate_(x,constants)
+A = constants.A;
+Ad = x(1)*A{1};
+for i = 2:length(x)
+    Ad = Ad + x(i)*A{i};
+end
+if length(A{1})>500 && length(constants.ev)<0.5*length(A{1})&&nargout<4
+    [Q,D] = eigs(Ad, length(constants.ev), 'smallestreal');
+    D = diag(D);
 else
     [Q,D] = eig(full(Ad),'vector');
     D = D(1:length(constants.ev));
@@ -465,4 +608,16 @@ function setMarkerNumber(f,n)
     for i = 1:length(f.Children)
         f.Children(i).MarkerIndices = 1:(floor(length(f.Children(i).MarkerIndices)/n)):f.Children(i).MarkerIndices(end);
     end
+end
+
+function f = spyplots(x,y,varargin)
+    l = length(varargin);
+    if l~= x*y
+        error("must be the same dimension")
+    end
+    f = figure(1);
+for i = 1:l
+    subplot(x,y,i)
+    spy(varargin{i})
+end
 end
