@@ -336,19 +336,20 @@ Sys1.J = [0,0 1 0 1 1 0 1 0 0 0 0 0 0 0];
 A{end+1} = ham_ee(Sys1,1:length(Sys1.S),'sparse');
 % A{end} = A{end}-ham_ee(Sys1,1:length(Sys1.S),'sparse');
 
-% Sys1.J = [1 0 0 0 0 0 0 0 0 0 0 0 0 0 0];
-% A{end+1} = ham_ee(Sys1,1:length(Sys1.S),'sparse'); 
+
 Sys1.J = [0 0 0 0 0 0 0 0 0 1 0 0 0 0 1];
 A{end+1} = ham_ee(Sys1,1:length(Sys1.S),'sparse');
 
+% Sys1.J = [1 0 0 0 0 0 0 0 0 0 0 0 0 0 0];
+% A{end+1} = ham_ee(Sys1,1:length(Sys1.S),'sparse'); 
 problem.Solver = @mldivide;  problem.obj_fun = @INSEvaulate;
-f = spyplots(2,2,A{1},A{2},A{3},A{4});
+% f = spyplots(2,2,A{1},A{2},A{3},A{4});
 
 %%
 problem.x0 = [-21035 -1.9826e+05 1.9343e+05  48357 ]';
 % problem.x0 = [-21035 -1.9826e+05  48357 ]';
-problem.x0 = [2000000 -20000 -200000   50000 ]';
-% problem.x0 = [-10000 -100000 100000  10000 ]';
+% problem.x0 = [2000000 -200000 200000   50000 ]';
+% problem.x0 = [-20000 -200000   50000 200000]'*1.5;
 problem.x0(end+1) = -eigs(FormA(problem.x0,A,problem.A0),1,"smallestreal");
 % problem.x0(end) = 1;
 A{5} = speye(32400,32400);problem.A = A; 
@@ -356,7 +357,7 @@ A{5} = speye(32400,32400);problem.A = A;
 % xscaling = problem.x0; problem.A = scaleAx(problem.x0,A); problem.x0 = ones(length(problem.x0),1);
 repeats = 1;
 % % problem.x0 = ones(length(problem.x0),1)
-epsilon = 8; LPSteps = 100; doubled = false; NewtonSteps = 0;
+epsilon = 1e-2; LPSteps = 1000; doubled = false; NewtonSteps = 0;
 tic
 for i = 1:repeats
     % [LPIterations,NewtonIterations] = Old_LP_Newton(problem,epsilon,LPSteps,NewtonSteps);
@@ -367,8 +368,8 @@ LPIterations
 %%
 [Q,D] = eigs(FormA(LPIterations.FinalPoint, problem.A,problem.A0),length(problem.ev),'smallestreal');
  [Q0,D0] = eigs(FormA(problem.x0, problem.A,problem.A0),length(problem.ev),'smallestreal');
-D0 = diag(D0);% D0 =  (D0-D0(1))./meV;
-D = diag(D); %D = (D-D(1))./meV;
+D0 = diag(D0); D0 =  (D0-D0(1))./meV;
+D = diag(D); D = (D-D(1))./meV;
 MintOpt.Eigs = D;
 MintOpt.Vecs = Q;
 %%
@@ -399,17 +400,6 @@ Sys.B2 = [B22III 0 B20III 0 0;
           B22II 0 B20II 0 0];
 MintSys = Sys;
 
-FormFactor = {'Mn3', 'Mn3', 'Mn2', 'Mn2', 'Mn2', 'Mn2'};
-% Metal ion coordinates for INS. Only relative positions are important.
-Coords = [24.60550  13.06674   7.07523; % A
-    22.27025  11.49336   6.95626; % B
-    21.99544  13.57222   9.30268; % 1
-    24.62949  10.95050   9.41655; % 2
-    24.24486  10.55088   4.68547; % 3
-    22.84040  14.03029   4.66904; % 4
-    ];
-MintSys.FormFactor = FormFactor;
-MintSys.Coords = Coords;
 % Sim INS powder spectrum
 MintExp.SpectrumType = 'SE'; %INS intensity vs. energy
 Ei = 4; %Incident neutron energy in meV
@@ -425,6 +415,18 @@ r=[0.8500 0.3250 0.0980];
 y=[0.9290 0.6940 0.1250];
 g=[0.4660 0.6740 0.1880];
 colours = [b;y;g;r];
+
+FormFactor = {'Mn3', 'Mn3', 'Mn2', 'Mn2', 'Mn2', 'Mn2'};
+% Metal ion coordinates for INS. Only relative positions are important.
+Coords = [24.60550  13.06674   7.07523; % A
+    22.27025  11.49336   6.95626; % B
+    21.99544  13.57222   9.30268; % 1
+    24.62949  10.95050   9.41655; % 2
+    24.24486  10.55088   4.68547; % 3
+    22.84040  14.03029   4.66904; % 4
+    ];
+MintSys.FormFactor = FormFactor;
+MintSys.Coords = Coords;
 
     [cross_sect,Eigs,Vecs,I_nm] = mint(MintSys,MintExp,MintOpt);
     plotmint(cross_sect, MintExp, colours)
