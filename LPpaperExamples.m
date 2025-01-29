@@ -265,56 +265,34 @@ Eigs=EE(1:24)-EE(1);
 problem.A = A; problem.ev = Eigs; problem.A0 = A0;
 problem.Solver = @mldivide;  problem.obj_fun = @INSEvaulate;
 
-f = spyplots(1,3,A{1},A{2},A{3});
-f.Units = 'centimeters';
-f.Position = [-50 10 20 14];
-print(f, 'SpyPlots.eps', '-depsc')
+% f = spyplots(1,3,A{1},A{2},A{3});
+% f.Units = 'centimeters';
+% f.Position = [-50 10 20 14];
+% print(f, 'SpyPlots.eps', '-depsc')
 %%
-problem.x0 = [1692,-3304,3.53e5,5.21e6]';
-problem.x0 = [1000,-100,100,100000]';
+problem.x0 = [1692,-3304,3.53e5]';
+problem.x0 = [2000,-3000,40000]';
 % problem.x0 = [1,1,1,1]';
 
-% Eigs= eigs(FormA(problem.x0,problem.A,problem.A0),length(problem.ev),'smallestreal');
+Eigs= eigs(FormA(problem.x0,problem.A,problem.A0),length(problem.ev),'smallestreal');
+problem.x0(end+1) = -Eigs(1);
+% problem.x0(end+1) = -eigs(FormA(problem.x0,A,problem.A0),1,"smallestreal");
 problem.A{4} = speye(size(A{1}));
-% problem.x0(end+1) = 1000;
-% if Eigs(1)> 0
-%     problem.x0(end+1) = 0;
-% else
-%     problem.x0(end+1) = -Eigs(1);
-% end
-% eigratio = problem.ev(end)/(Eigs(end)+problem.x0(end));
+%%
+% eigratio = problem.ev(end)/(Eigs(length(problem.ev))+problem.x0(end));
 % if eigratio>1
 %     problem.x0 = problem.x0.*eigratio;
 % end
-
-
-
-
-% for i = 1:length(A)
-%     problem.A{i} = problem.A{i}*problem.x0(i);
-% problem.x0(i) = 1;
-% end
-
 %
 repeats = 1;
-epsilon = 1e-5; LPSteps = 100; doubled = false; NewtonSteps = 10;
+epsilon = 1e-5; LPSteps = 0; doubled = false; NewtonSteps = 10;
 tic
 for i = 1:repeats
     % [LPIterations,NewtonIterations] = Old_LP_Newton(problem,epsilon,LPSteps,NewtonSteps);
     [LPIterations,NewtonIterations] = RGD_LP_Newton(problem,epsilon,LPSteps,NewtonSteps, doubled);
 end
 LPnewTime = toc/repeats;
-NewtonIterations
-%%
-
-epsilon = 1e-10; LPSteps = 10; doubled = false; NewtonSteps = 0;
-tic
-for i = 1:repeats
-    % [LPIterations,NewtonIterations] = O ld_LP_Newton(problem,epsilon,LPSteps,NewtonSteps);
-    [LPIterations,NewtonIterations] = LP_Newton(problem,epsilon,LPSteps,NewtonSteps);
-end
-LPnewTime = toc/repeats;
-
+LPIterations
 
 
 %% Example 5 - Mn6 
@@ -323,11 +301,12 @@ rcm = 29979.2458;    % reciprocal cm to MHz
 meV = rcm*8.065;
 
 problem.ev = [ 0, 0.1414, 0.59070, 0.59070, 1.0841, 1.0841 , 1.0841, 1.4134, 1.4134, 2.316, 2.316, 2.316, 2.5218, 2.5218, 2.5218, 2.5218]'.*meV;  
+problem.ev =  [ 0, 0.1414, 0.59070, 0.59070, 1.0841, 1.0841 , 1.0841, 1.4134, 1.4134, 2.316, 2.316, 2.316, 2.316, 2.316,  2.5218, 2.5218]'.*meV;
 Sys1.S = [2 2 5/2 5/2 5/2 5/2]; % MnIII has S = 2, MnII has S = 5/2
 
 clear A
-Sys1.J = [10*meV,0 0 0 0 0 0 0 0 0 0 0 0 0 0];
-problem.A0 = ham_ee(Sys1,1:length(Sys1.S),'sparse');
+ Sys1.J = [10*meV,0 0 0 0 0 0 0 0 0 0 0 0 0 0];
+ problem.A0 = ham_ee(Sys1,1:length(Sys1.S),'sparse'); problem.A0 =sparse(32400,32400);
 A{1} = stev(Sys1.S,[2,0,1],'sparse')+ stev(Sys1.S,[2,0,2],'sparse');
 % A{end+1} = stev(Sys1.S,[2,2,1],'sparse')+ stev(Sys1.S,[2,2,1],'sparse');
 Sys1.J = [0,1 0 1 0 0 1 0 1 0 0 0 0 0 0];
@@ -340,8 +319,8 @@ A{end+1} = ham_ee(Sys1,1:length(Sys1.S),'sparse');
 Sys1.J = [0 0 0 0 0 0 0 0 0 1 0 0 0 0 1];
 A{end+1} = ham_ee(Sys1,1:length(Sys1.S),'sparse');
 
-% Sys1.J = [1 0 0 0 0 0 0 0 0 0 0 0 0 0 0];
-% A{end+1} = ham_ee(Sys1,1:length(Sys1.S),'sparse'); 
+Sys1.J = [1 0 0 0 0 0 0 0 0 0 0 0 0 0 0];
+A{end+1} = ham_ee(Sys1,1:length(Sys1.S),'sparse'); 
 problem.Solver = @mldivide;  problem.obj_fun = @INSEvaulate;
 % f = spyplots(2,2,A{1},A{2},A{3},A{4});
 
@@ -349,10 +328,10 @@ problem.Solver = @mldivide;  problem.obj_fun = @INSEvaulate;
 problem.x0 = [-21035 -1.9826e+05 1.9343e+05  48357 ]';
 % problem.x0 = [-21035 -1.9826e+05  48357 ]';
 % problem.x0 = [2000000 -200000 200000   50000 ]';
-% problem.x0 = [-20000 -200000   50000 200000]'*1.5;
+problem.x0 = [-20000 -200000   200000 50000 2000000]';
 problem.x0(end+1) = -eigs(FormA(problem.x0,A,problem.A0),1,"smallestreal");
 % problem.x0(end) = 1;
-A{5} = speye(32400,32400);problem.A = A; 
+A{6} = speye(32400,32400);problem.A = A; 
 %
 % xscaling = problem.x0; problem.A = scaleAx(problem.x0,A); problem.x0 = ones(length(problem.x0),1);
 repeats = 1;
@@ -374,10 +353,10 @@ MintOpt.Eigs = D;
 MintOpt.Vecs = Q;
 %%
 Sys.S = [2 2 5/2 5/2 5/2 5/2]; % MnIII has S = 2, MnII has S = 5/2
-J_S4_S4   = -5*meV;    % MnIII - MnIII.                       Rodolphe: Strong and AFM.    Keep fixed.
+J_S4_S4   = LPIterations.FinalPoint(5)./(-2); % -5*meV;    % MnIII - MnIII.                       Rodolphe: Strong and AFM.    Keep fixed.
 J_S4_S5_1 = LPIterations.FinalPoint(2)./(-2);  % MnIII - MnII, MnIII JT involved.     Rodolphe: Weak, FM or AFM.   Free value
-J_S4_S5_2 = -LPIterations.FinalPoint(2)./(-2); % MnIII - MnII, MnIII JT not involved. Rodolphe: Weak and AFM.      Free value
-J_S5_S5   = LPIterations.FinalPoint(3)./(-2); 
+J_S4_S5_2 = LPIterations.FinalPoint(3)./(-2); % MnIII - MnII, MnIII JT not involved. Rodolphe: Weak and AFM.      Free value
+J_S5_S5   = LPIterations.FinalPoint(4)./(-2); 
 J_AB = J_S4_S4;
 J_A1 = J_S4_S5_1; J_A3 = J_S4_S5_1; J_B2 = J_S4_S5_1; J_B4 = J_S4_S5_1; %For these, the MnIII JT axis is involved. Can be FM or AFM
 J_A2 = J_S4_S5_2; J_A4 = J_S4_S5_2; J_B1 = J_S4_S5_2; J_B3 = J_S4_S5_2; %For these, the MnIII JT axis is NOT involved. Can only be AFM
@@ -386,7 +365,8 @@ J_14 = -0.00.*meV;         J_23 = J_14; %Assumed zero. Only interacts via a piva
 J_13 = -0.00.*meV;         J_24 = J_13; 
 Sys.J = [J_AB J_A1 J_A2 J_A3 J_A4 J_B1 J_B2 J_B3 J_B4 J_12 J_13 J_14 J_23 J_24 J_34].*(-2); %-2JS.S formalism
 DIII = LPIterations.FinalPoint(1)./3; % MnIII anisotropy. Free Value 
-% DIII = -0.02*meV;
+% DIII = -0
+% .02*meV;
 EIII = 0*DIII;   % MnIII rhombicity. For INS, assume 0.
 B20III = 3*DIII; B22III = EIII; %Converting to Stevens Operator formalism
 DII = -0.00*meV; % MnII anisotropy. For INS, assume 0. 
@@ -408,7 +388,7 @@ MintExp.lwfwhm = 0.02*Ei/2.355; %calculated line width full-width-at-half-max, 2
 MintExp.Energy = linspace(-Ei*0.8,Ei*0.8,1000); %calculating the spectrum in the interval -0.8*Ei to 0.8*Ei
 MintExp.Q = 0.1:0.01:2.5; %Q-range which the simulation integrates over.
 MintExp.Temperature = [1.5 5 10 30];
-MintOpt.NumEigs = length(problem.ev); %100 eigenvalues gives a good INS sim
+MintOpt.NumEigs =length(problem.ev)+1; %100 eigenvalues gives a good INS sim
 
 b =[0 0.4470 0.7410];
 r=[0.8500 0.3250 0.0980];
@@ -544,19 +524,19 @@ Ad = constants.A0;
 for i = 1:length(x)
     Ad = Ad + x(i)*A{i};
 end
-if length(A{1})>500 && length(constants.ev)<0.5*length(A{1})&&nargout<4
+if  length(A{1})<500
+    [Q,D] = eig(full(Ad),'vector');
+elseif length(A{1})>500 && length(constants.ev)<0.5*length(A{1})&&nargout<4
     [Q,D] = eigs(Ad, length(constants.ev), 'smallestreal');
     D = diag(D);
-elseif nargout>4&&length(A{1})>5000
+
 else
-    [Q,D] = eigs((Ad),length(A{1}));
-    D = diag(D);
-    D = D(1:length(constants.ev));
-    Q = Q(:,1:length(constants.ev));
+    [QFull,DFull] = eigs((Ad),length(A{1}),'smallestreal');
+    DFull = diag(DFull);
+    D = DFull(1:length(constants.ev));
+    Q = QFull(:,1:length(constants.ev));
+
 end
-
-% D = D - D(1);
-
 
 F = sqrt(sum((D-constants.ev).^2));
 if nargout>1
