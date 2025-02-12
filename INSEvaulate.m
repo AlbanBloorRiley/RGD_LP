@@ -25,31 +25,31 @@ if nargout>1
     R = (D-constants.ev);
 end
 if nargout>2
-    l = length(A);
-    m = size(Q,2);
-    J = zeros(m,l);
-    for k = 1:l
-        J(:,k) =real(sum((Q.'*A{k}).*Q',2));
-    end
-    % J = FormJ_Lambda(Q,A);
+    % l = length(A);
+    % m = size(Q,2);
+    % J = zeros(m,l);
+    % for k = 1:l
+    %     J(:,k) =real(sum((Q.'*A{k}).*Q',2));
+    % end
+    J = FormJ_Lambda(Q,A);
 end
 if nargout>3
-    m = length(constants.ev); l=length(A);
-    H = zeros(l,l,m);
-    QAQ = cell(1,l);
-    for i = 1:l
-        QAQ{i} = QFull'*A{i}*Q;
-        % QAQ{i} = Q'*A{i}*Q;
-        % QAQ{i} =QAQ{i}(1:m,1:m);
-    end
-    DD=D'-DFull;
-    % DD=D'-D;
-    DD(abs(DD)<1e-15) = Inf;
-    for j=1:l
-        for k = 1:l
-            H(k,j,:) = real(2*sum(QAQ{k}.*QAQ{j}./DD));
-        end
-    end
-    % H = FormH_Lambda(Q,A,D,constants.ev);
+    % m = length(constants.ev); l=length(A);
+    % H = zeros(l,l,m);
+    % QAQ = cell(1,l);
+    % for i = 1:l
+    %     QAQ{i} = QFull'*A{i}*Q;
+    %     % QAQ{i} = Q'*A{i}*Q;
+    %     % QAQ{i} =QAQ{i}(1:m,1:m);
+    % end
+    % DD=D'-DFull;
+    % % DD=D'-D;
+    % DD(abs(DD)<1e-15) = Inf;
+    % for j=1:l
+    %     for k = 1:l
+    %         H(k,j,:) = real(2*sum(QAQ{k}.*QAQ{j}./DD));
+    %     end
+    % end
+    H = FormH_Lambda(Q,A,D,constants.ev);
 end
 end
