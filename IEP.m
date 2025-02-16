@@ -1,10 +1,11 @@
 function [f,varargout] = IEP(x,constants)
-if length(constants.A{1})<500 
+if length(constants.A{1})<10000 
     [QFull,DFull] = eig(full(FormA(x,constants.A,constants.A0)),'vector');    
-elseif length(constants.ev)<0.5*length(constants.A{1}) &&nargout<4
-    [Q,D] = eigs(FormA(x,constants.A,constants.A0),length(constants.ev),constants.ev);
+% elseif length(constants.ev)<0.5*length(constants.A{1}) &&nargout<4
+%     [QFull,DFull] = eigs(FormA(x,constants.A,constants.A0),length(constants.ev),constants.ev);
 else
-    [QFull,DFull] = eig(full(FormA(x,constants.A,constants.A0)),'vector');
+    [QFull,DFull] = eigs(full(FormA(x,constants.A,constants.A0)),length(constants.A{1}),'smallestreal');
+end
     if length(constants.ev)<length(DFull)
         C = (DFull'-constants.ev).^2;
         pairs = matchpairs(C,100*max(max(C)));
@@ -14,7 +15,6 @@ else
     else
         D = DFull; Q = QFull;
     end
-end
 if any(isnan(D))
     f = nan;
     for i = 1:nargout-1
