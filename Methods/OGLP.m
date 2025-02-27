@@ -45,7 +45,7 @@ while stop == false
     % Calculate residual, Jacobian of R
     [X.F,X.R,X.J] = obj_fun(x, constants); FuncCount = FuncCount +1;
 
-        [stop, CurrentLoop.ConvergenceFlag] = ismin(X.F, x-xprev, NIter, constants);
+        [stop, CurrentLoop.ConvergenceFlag] = isminimum(X.F, x-xprev, NIter, constants);
     % Save iterates for plotting
     CurrentLoop.Iterates = [CurrentLoop.Iterates, x];
 end

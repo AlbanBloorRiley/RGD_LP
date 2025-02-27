@@ -1,4 +1,4 @@
-function [test,flag] = ismin(f,p,NIter,ConvergenceParams)
+function [test,flag] = isminimum(f,p,NIter,ConvergenceParams)
 flag = "";
 test = false;
 if norm(p)<ConvergenceParams.StepTolerance

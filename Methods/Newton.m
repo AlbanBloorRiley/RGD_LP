@@ -28,7 +28,7 @@ while stop == false
     end
     Hess = X.J'*X.J+X.S;
 
-     [stop, CurrentLoop.ConvergenceFlag] = ismin(X.F, p, NIter, constants);
+     [stop, CurrentLoop.ConvergenceFlag] = isminimum(X.F, p, NIter, constants);
     % Save iterates for plotting
     CurrentLoop.Iterates = [CurrentLoop.Iterates, x];
 end
