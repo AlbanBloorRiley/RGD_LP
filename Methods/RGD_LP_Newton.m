@@ -15,7 +15,7 @@ else
 end
 if NewtonSteps>0
     problem.MaxIter = NewtonSteps; problem.StepTolerance = 1e-5; problem.x0=x1;
-    [NewtonIterations] = Newton(problem);
+    NewtonIterations = Newton(problem);
     x= NewtonIterations.FinalPoint;
     ek = norm(NewtonIterations.Iterates(:,end)-NewtonIterations.Iterates(:,end-1));
 else
