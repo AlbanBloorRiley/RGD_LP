@@ -8,7 +8,7 @@ Binv = FormBinv(constants.A);
 [X.F,X.R,X.J] = obj_fun(x, constants); FuncCount = 1;
 OutputLineLength = fprintf('k = %d; f(x) = %d; |gradf(x)| = %d; \n', NIter,X.F,norm(X.J'*X.R));
 fprintf(repmat(' ',1,OutputLineLength))
-[stop,CurrentLoop.ConvergenceFlag] = ismin(X.F, inf, NIter, constants);
+[stop,CurrentLoop.ConvergenceFlag] = isminimum(X.F, inf, NIter, constants);
 % Main Loop
 while stop == false
     p = - Binv*X.J'*X.R;

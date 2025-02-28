@@ -6,7 +6,7 @@ Binv = FormBinv(constants.A);
 
 % Calculate residual, Jacobian and Hessian of R
 [X.F,X.R,X.J] = obj_fun(x, constants); FuncCount = 1;
-[stop,CurrentLoop.ConvergenceFlag] = ismin(X.F, inf, NIter, constants);
+[stop,CurrentLoop.ConvergenceFlag] = isminimum(X.F, inf, NIter, constants);
 % Main Loop
 while stop == false
 

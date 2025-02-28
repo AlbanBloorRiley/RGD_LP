@@ -9,7 +9,7 @@ CurrentLoop.Iterates = x;
         X.S = X.S + X.H(:,:,i)*X.R(i);
     end
     Hess = X.J'*X.J+X.S;
-[stop,CurrentLoop.ConvergenceFlag] = ismin(X.F, inf, NIter, constants);
+[stop,CurrentLoop.ConvergenceFlag] = isminimum(X.F, inf, NIter, constants);
 % Main Loop
 while stop == false
 
@@ -18,6 +18,7 @@ while stop == false
     % p = -lsqminnorm(Hess,X.J'*X.R);
     p = -constants.Solver(Hess,X.J'*X.R);
     x = x+p;
+    
     
     NIter = NIter + 1;
     % Calculate residual, Jacobian of R
