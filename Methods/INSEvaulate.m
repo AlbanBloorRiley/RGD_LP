@@ -6,20 +6,32 @@ for i = 1:length(x)
 end
 if  length(A{1})<500
     [QFull,DFull] = eig(full(Ad),'vector');
-    Q = QFull(:,1:length(constants.ev)); D = DFull(1:length(constants.ev));
 elseif length(A{1})>500 && length(constants.ev)<0.5*length(A{1})&&nargout<4
-    [QFull,DFull] = eigs(Ad, length(constants.ev), 'smallestreal');
+    [QFull,DFull] = eigs(Ad, length(constants.ev)+10, 'smallestreal');
+%     if DFull(end) < constants.ev(end)
+%         [QFull,DFull] = eigs(Ad, min(3*length(constants.ev)+10,length(A{1})), 'smallestreal');
+%         if DFull(end) < constants.ev(end)
+%             [QFull,DFull] = eigs((Ad),length(A{1}),'smallestreal');
+%         end
+%     end
     DFull = diag(DFull);
-    Q = QFull(:,1:length(constants.ev)); D = DFull(1:length(constants.ev));
 else
     [QFull,DFull] = eigs((Ad),length(A{1}),'smallestreal');
     DFull = diag(DFull);
-    D = DFull(1:length(constants.ev));
-    Q = QFull(:,1:length(constants.ev));
-    % DFull = D;QFull = Q;
-
 end
-
+% if DFull(length(constants.ev)+1) < constants.ev(end)
+% for i = length(constants.ev)+1:length(A{1})
+%     if DFull(i) > constants.ev(end)
+%         break
+%     end
+% end
+%         C = (DFull'-constants.ev).^2;
+%         pairs = matchpairs(C,100*max(max(C)));
+%         D = DFull(pairs(:,2));
+%         Q = QFull(:,pairs(:,2));
+% else
+Q = QFull(:,1:length(constants.ev)); D = DFull(1:length(constants.ev));
+% end
 F = sqrt(sum((D-constants.ev).^2));
 if nargout>1
     R = (D-constants.ev);

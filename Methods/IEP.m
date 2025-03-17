@@ -1,5 +1,5 @@
 function [f,varargout] = IEP(x,constants)
-if length(constants.A{1})<10000 
+if length(constants.A{1})<1000
     [QFull,DFull] = eig(full(FormA(x,constants.A,constants.A0)),'vector');    
 % elseif length(constants.ev)<0.5*length(constants.A{1}) &&nargout<4
 %     [QFull,DFull] = eigs(FormA(x,constants.A,constants.A0),length(constants.ev),constants.ev);
