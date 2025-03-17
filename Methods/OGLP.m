@@ -1,12 +1,12 @@
 function [CurrentLoop] = OGLP(constants)
 obj_fun = constants.obj_fun; NIter = 0;   x = constants.x0;      
 CurrentLoop.Iterates = x;
-
+pprev = 0;
 Binv = FormBinv(constants.A);
 
 % Calculate residual, Jacobian and Hessian of R
 [X.F,X.R,X.J] = obj_fun(x, constants); FuncCount = 1;
-[stop,CurrentLoop.ConvergenceFlag] = isminimum(X.F, inf, NIter, constants);
+[stop,CurrentLoop.ConvergenceFlag] = isminimum(X.F,x, inf,inf, NIter, constants);
 % Main Loop
 while stop == false
 
@@ -24,6 +24,9 @@ while stop == false
         Qcomp(:,pairs(:,2)) =[];
         % constants.ev = constants.ev((pairs(:,1)));
         Q = [Qmatch,Qcomp];
+        if any(pairs(:,2)~=[1:length(pairs)]')
+            pairs
+        end
     else
          Q = QFull;  %D = DFull;
          Dcomp = [];
@@ -45,7 +48,8 @@ while stop == false
     % Calculate residual, Jacobian of R
     [X.F,X.R,X.J] = obj_fun(x, constants); FuncCount = FuncCount +1;
 
-        [stop, CurrentLoop.ConvergenceFlag] = isminimum(X.F, x-xprev, NIter, constants);
+     [stop, CurrentLoop.ConvergenceFlag] = isminimum(X.F,x, p,pprev, NIter, constants);
+    pprev=p;
     % Save iterates for plotting
     CurrentLoop.Iterates = [CurrentLoop.Iterates, x];
 end

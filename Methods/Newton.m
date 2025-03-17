@@ -1,7 +1,7 @@
 function [CurrentLoop] = Newton(constants)
 obj_fun = constants.obj_fun; NIter = 0;   x = constants.x0;      
 CurrentLoop.Iterates = x;
-
+pprev = 0;
 % Calculate residual, Jacobian and Hessian of R
 [X.F,X.R,X.J,X.H] = obj_fun(x, constants); FuncCount = 1;
     X.S = zeros(length(x));
@@ -9,7 +9,7 @@ CurrentLoop.Iterates = x;
         X.S = X.S + X.H(:,:,i)*X.R(i);
     end
     Hess = X.J'*X.J+X.S;
-[stop,CurrentLoop.ConvergenceFlag] = isminimum(X.F, inf, NIter, constants);
+[stop,CurrentLoop.ConvergenceFlag] = isminimum(X.F,x, inf,inf, NIter, constants);
 % Main Loop
 while stop == false
 
@@ -29,7 +29,8 @@ while stop == false
     end
     Hess = X.J'*X.J+X.S;
 
-     [stop, CurrentLoop.ConvergenceFlag] = isminimum(X.F, p, NIter, constants);
+     [stop, CurrentLoop.ConvergenceFlag] = isminimum(X.F,x, p,pprev, NIter, constants);
+    pprev=p;
     % Save iterates for plotting
     CurrentLoop.Iterates = [CurrentLoop.Iterates, x];
 end

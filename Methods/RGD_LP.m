@@ -2,21 +2,26 @@ function [CurrentLoop] = RGD_LP(constants)
 obj_fun = constants.obj_fun; NIter = 0;   x = constants.x0;      
 CurrentLoop.Iterates = x;
 
+alpha = 1; Fprev = inf; pprev=0;
+
 Binv = FormBinv(constants.A);
 
 % Calculate residual, Jacobian and Hessian of R
 [X.F,X.R,X.J] = obj_fun(x, constants); FuncCount = 1;
-OutputLineLength = fprintf('k = %d; f(x) = %d; |gradf(x)| = %d; \n', NIter,X.F,norm(X.J'*X.R));
-fprintf(repmat(' ',1,OutputLineLength))
-[stop,CurrentLoop.ConvergenceFlag] = isminimum(X.F, inf, NIter, constants);
+CurrentLoop.F = X.F;
+% OutputLineLength = fprintf('k = %d; f(x) = %d; |gradf(x)| = %d; alpha = %d \n', NIter,X.F,norm(X.J'*X.R),alpha);
+% fprintf(repmat(' ',1,OutputLineLength))
+[stop,CurrentLoop.ConvergenceFlag] = isminimum(X.F,x, inf,inf, NIter, constants);
 % Main Loop
 while stop == false
     p = - Binv*X.J'*X.R;
+    % p = - (X.J'*X.J)\X.J'*X.R;
+    % p = - lsqminnorm(X.J'*X.J,X.J'*X.R);
     if constants.doubled
         p = p*2;
     end
-    % xprev = x;
-    x = x+p;
+    xprev = x;
+    x = x+alpha*p;
     
    
     % alpha = 1;
@@ -27,19 +32,44 @@ while stop == false
     % x = xprev + alpha*p;
     NIter = NIter + 1;
     % Calculate residual, Jacobian of R
-    Fprev = X.F;
+    
+
     [X.F,X.R,X.J] = obj_fun(x, constants); FuncCount = FuncCount +1;
+
+    % if X.F<Fprev
+    %     [X1.F,X1.R,X1.J] = obj_fun(xprev+ 1.1*alpha*p, constants); FuncCount = FuncCount +1;
+    %     if X1.F<X.F
+    %         alpha = alpha*1.1;
+    %         x = xprev+alpha*p;
+    %         X=X1;
+    %     end
+    % else
+    %     [X1.F,X1.R,X1.J] = obj_fun(xprev+ 0.5*alpha*p, constants); FuncCount = FuncCount +1;
+    %     if X1.F<Fprev
+    %         alpha = max(alpha*0.5,1);
+    %         x = xprev+alpha*p;
+    %         X=X1;
+    %     else
+    %     alpha = 1;
+    %     x = xprev+alpha*p;
+    %     [X.F,X.R,X.J] = obj_fun(x, constants); FuncCount = FuncCount +1;
+    %     end
+    % end
+
+
     if Fprev<X.F
         X.F;
     end
+    Fprev = X.F;
     % [constants,x,Binv] = rescale(constants,x);
-    fprintf(repmat('\b',1,OutputLineLength))
-    OutputLineLength = fprintf('k = %d; f(x) = %d; |gradf(x)| = %d; \n', NIter,X.F,norm(X.J'*X.R));
-
+%     fprintf(repmat('\b',1,OutputLineLength))
+% OutputLineLength = fprintf('k = %d; f(x) = %d; |gradf(x)| = %d; alpha = %d \n', NIter,X.F,norm(X.J'*X.R),alpha);
     
-     [stop, CurrentLoop.ConvergenceFlag] = isminimum(X.F, p, NIter, constants);
-    % Save iterates for plotting
+     [stop, CurrentLoop.ConvergenceFlag] = isminimum(X.F,x, p,pprev, NIter, constants);
+    pprev=p;
+     % Save iterates for plotting
     CurrentLoop.Iterates = [CurrentLoop.Iterates, x];
+    CurrentLoop.F=X.F;
 end
 CurrentLoop.FinalPoint = x;
 CurrentLoop.ErrorAtFinalPoint = obj_fun(x, constants);
