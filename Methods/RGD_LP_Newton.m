@@ -5,8 +5,9 @@ else
     problem.doubled = false;
 end
 if LPSteps>0
-    problem.MaxIter = LPSteps;  problem.StepTolerance = epsilon; 
-    LPIterations = RGD_LP(problem);
+    LPproblem = problem;
+    LPproblem.MaxIter = LPSteps;  LPproblem.StepTolerance = epsilon; 
+    LPIterations = RGD_LP(LPproblem);
     x1= LPIterations.FinalPoint;
 else
     LPIterations.Iterates=problem.x0;
@@ -14,8 +15,14 @@ else
     x1=problem.x0;
 end
 if NewtonSteps>0
-    problem.MaxIter = NewtonSteps; problem.StepTolerance = 1e-5; problem.x0=x1;
-    NewtonIterations = Newton(problem);
+    Newtonproblem = problem;
+    Newtonproblem.MaxIter = NewtonSteps;  Newtonproblem.x0=x1;
+    if isfield(problem,'StepTolerance')
+        Newtonproblem.StepTolerance =problem.StepTolerance;
+    else
+        Newtonproblem.StepTolerance = 1e-5;
+    end
+    NewtonIterations = Newton(Newtonproblem);
     x= NewtonIterations.FinalPoint;
     ek = norm(NewtonIterations.Iterates(:,end)-NewtonIterations.Iterates(:,end-1));
 else
