@@ -3,18 +3,29 @@ obj_fun = constants.obj_fun; NIter = 0;   x = constants.x0;
 CurrentLoop.Iterates = x;
 
 alpha = 1; Fprev = inf; pprev=0;
-
-Binv = FormBinv(constants.A);
+usecholesky = false;
+if isfield(constants, 'BCholeskyFactor')
+    R = constants.BCholeskyFactor;
+    usecholesky = true;
+elseif isfield(constants,'Binv')
+    Binv = constants.Binv;
+else
+    Binv = FormBinv(constants.A);
+end
 
 % Calculate residual, Jacobian and Hessian of R
 [X.F,X.R,X.J] = obj_fun(x, constants); FuncCount = 1;
 CurrentLoop.F = X.F;
-% OutputLineLength = fprintf('k = %d; f(x) = %d; |gradf(x)| = %d; alpha = %d \n', NIter,X.F,norm(X.J'*X.R),alpha);
-% fprintf(repmat(' ',1,OutputLineLength))
+OutputLineLength = fprintf('k = %d; f(x) = %d; |gradf(x)| = %d; alpha = %d \n', NIter,X.F,norm(X.J'*X.R),alpha);
+fprintf(repmat(' ',1,OutputLineLength))
 [stop,CurrentLoop.ConvergenceFlag] = isminimum(X.F,x, inf,inf, NIter, constants);
 % Main Loop
 while stop == false
-    p = - Binv*X.J'*X.R;
+    if usecholesky
+     p = R\(R\X.J'*X.R);
+    else
+     p = - Binv*X.J'*X.R;
+    end
     % p = - (X.J'*X.J)\X.J'*X.R;
     % p = - lsqminnorm(X.J'*X.J,X.J'*X.R);
     if constants.doubled
@@ -62,8 +73,8 @@ while stop == false
     end
     Fprev = X.F;
     % [constants,x,Binv] = rescale(constants,x);
-%     fprintf(repmat('\b',1,OutputLineLength))
-% OutputLineLength = fprintf('k = %d; f(x) = %d; |gradf(x)| = %d; alpha = %d \n', NIter,X.F,norm(X.J'*X.R),alpha);
+    fprintf(repmat('\b',1,OutputLineLength))
+OutputLineLength = fprintf('k = %d; f(x) = %d; |gradf(x)| = %d; alpha = %d \n', NIter,X.F,norm(X.J'*X.R),alpha);
     
      [stop, CurrentLoop.ConvergenceFlag] = isminimum(X.F,x, p,pprev, NIter, constants);
     pprev=p;
