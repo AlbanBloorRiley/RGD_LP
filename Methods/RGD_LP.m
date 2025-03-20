@@ -15,7 +15,7 @@ end
 
 % Calculate residual, Jacobian and Hessian of R
 [X.F,X.R,X.J] = obj_fun(x, constants); FuncCount = 1;
-CurrentLoop.F = X.F;
+CurrentLoop.Error = X.F;
 OutputLineLength = fprintf('k = %d; f(x) = %d; |gradf(x)| = %d; alpha = %d \n', NIter,X.F,norm(X.J'*X.R),alpha);
 fprintf(repmat(' ',1,OutputLineLength))
 [stop,CurrentLoop.ConvergenceFlag] = isminimum(X.F,x, inf,inf, NIter, constants);
@@ -80,7 +80,7 @@ OutputLineLength = fprintf('k = %d; f(x) = %d; |gradf(x)| = %d; alpha = %d \n', 
     pprev=p;
      % Save iterates for plotting
     CurrentLoop.Iterates = [CurrentLoop.Iterates, x];
-    CurrentLoop.F=X.F;
+    CurrentLoop.Error=[CurrentLoop.Error,X.F];
 end
 CurrentLoop.FinalPoint = x;
 CurrentLoop.ErrorAtFinalPoint = obj_fun(x, constants);
