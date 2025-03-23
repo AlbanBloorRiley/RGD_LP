@@ -1,7 +1,7 @@
 %% Example 1
 clear problem A Binv 
 N =5000;
-l = 10;
+l = 40;
 problem.A0 =sparse(zeros(N));
 
 A{1} = speye(N);
@@ -29,7 +29,7 @@ problem.ev = [-5,-4,-3,-2,-1]'*100;
 problem.ev = -[10,9,8,7,6,5,4,3,2,1]'*1e1;
 problem.ev = (-1.1:0.001:-1.081)'*5e2;
 
-eigs(FormA(problem.x0,problem.A,problem.A0),21,'smallestreal')
+% eigs(FormA(problem.x0,problem.A,problem. A0),21,'smallestreal')
 % eigs(FormA(problem.x0,problem.A,problem.A0),30,'smallestreal')
 
 
@@ -39,30 +39,34 @@ problem.Solver = @mldivide;
 tic;[Binv]= FormBinv(problem.A);toc
 problem.Binv = Binv;
 %%
-tic
-epsilon = 0;  LPSteps = 0;NSteps =10;
-for i = 1:repeats
-    [~,OnlyNewtonIterations] = RGD_LP_Newton(problem,epsilon,LPSteps,NSteps,false)
-end
-NewtonTime = toc/repeats
-
-%%
-epsilon = 0.0001; LPSteps = 500;NSteps =3;
+problem.StepTolerance= 1e-6; problem.MaxIter = 500;
+%
 problem.obj_fun = @(a,b)IEPsmallest(a,b,false);
 tic
 for i = 1:repeats
-    [RGDLPIterations,RGDNewtonIterations] = RGD_LP_Newton(problem,epsilon,LPSteps,NSteps,false)
+    RGDLPMinIterations = RGD_LP(problem)
+    % [RGDLPMinIterations] = RGD_LP_Newton(problem,epsilon,LPSteps,NSteps,false)
+end
+RGDLPMinTime = toc/repeats
+
+
+%%
+
+problem.obj_fun = @IEP;
+tic
+for i = 1:repeats
+    RGDLPMinIterations = RGD_LP(problem)
+    % [RGDLPIterations] = RGD_LP_Newton(problem,epsilon,LPSteps,NSteps,false)
 end
 RGDLPTime = toc/repeats
 %%
 for i = 1:repeats
-    [LPIterations,NewtonIterations] = LP_Newton(problem,epsilon,LPSteps,NSteps)
+    [LPIterations,] = LP_Newton(problem,epsilon,LPSteps,NSteps)
 end
 LPN01Time = toc/repeats
 
 
 %%
-
 % ["Algorithm", "No. Iterations","CPU Time (seconds)";...
 %     "Newton", OnlyNewtonIterations.NIter, NewtonTime ;...
 %     "Old LP-Newton, \epsilon = 0.01", string(LPIterations01.NIter+"+"+NewtonIterations01.NIter),Old01Time;...
@@ -70,70 +74,17 @@ LPN01Time = toc/repeats
 %     "New LP-Newton, \epsilon = 0.01", string(RGDLPIterations01.NIter+"+"+RGDNewtonIterations01.NIter),RGDN01Time;...
 %     "New LP-Newton, \epsilon = 0.001", string(RGDLPIterations001.NIter+"+"+RGDNewtonIterations001.NIter),RGDN001Time
 %     ]
-
 colours = colororder;
 f = figure(1);
 clf
 semilogy(sum((RGDLPIterations.Iterates(:,2:end)-RGDLPIterations.Iterates(:,1:end-1)).^2), LineWidth=1.5)
 hold on
 semilogy([nan(1,RGDLPIterations.NIter-1),sum((RGDNewtonIterations.Iterates(:,2:end)-RGDNewtonIterations.Iterates(:,1:end-1)).^2)], 'color',colours(1,:),LineWidth=1.5)
-% 
-% semilogy(sum((LPIterations.Iterates(:,2:end)-LPIterations.Iterates(:,1:end-1)).^2), 'color',colours(2,:), LineWidth=1.5)
-% semilogy([nan(1,LPIterations.NIter-1),sum((NewtonIterations.Iterates(:,2:end)-NewtonIterations.Iterates(:,1:end-1)).^2)], 'color',colours(2,:),LineWidth=1.5)
-
 
 hold off
 
-%% Example 2
-clear all
-N = 5000;
-l = 100;
-m = 50;
-h = 0.1;
-problem.A0 = sparse(-(1/h)*toeplitz([2,-1,zeros(1,N-2)])');
-for k = 1:l
-    % problem.A{k} = sparse(diag([zeros(1,k-1),1,zeros(1,N-k)]));
-    problem.A{k} = sparse(k,k,1,N,N);
-end
-%%
-problem.x0 = [-l/2+2:2:l*1.5]'*1e3;
-problem.x0 = [-100*l+100:200:100*l]'*1e1;
-% problem.x0 = ones(N,1);
-problem.ev =  [-floor(N/4):-1,1:ceil(N/4)]';
-problem.ev =[-N:-1,]'/2;
-problem.ev = -[10:-0.1:9.1]'*1e4;
-problem.ev = (1:m - 40)*1e3;
-problem.ev = ((1:m)*1.5e+1 - 1000)'*1e2;
-% problem.ev =[10:10:100]';
-   problem.obj_fun = @IEPsmallest;
-repeats = 1;
-problem.Solver = @mldivide;
-[eigs(FormA(problem.x0,problem.A,problem.A0),m,'smallestreal'),problem.ev]
 
-%%
-tic
-epsilon = 0;  LPSteps = 0;NSteps =10;
-for i = 1:repeats
-    [~,OnlyNewtonIterations] = RGD_LP_Newton(problem,epsilon,LPSteps,NSteps,false)
-end
-NewtonTime = toc/repeats
-
-%%
-epsilon = 0.1; LPSteps = 100;NSteps =1;
-
-tic
-for i = 1:repeats
-    [RGDLPIterations,RGDNewtonIterations] = RGD_LP_Newton(problem,epsilon,LPSteps,NSteps,false)
-end
-RGDLPTime = toc/repeats
-%%
-for i = 1:repeats
-    [LPIterations,NewtonIterations] = LP_Newton(problem,epsilon,LPSteps,NSteps)
-end
-LPN01Time = toc/repeats
-
-
-%% Example 3 - Mn12 
+%% Example 2 - Mn12 
 clear all
 rcm = 29979.2458;    % reciprocal cm to MHz
 meV = rcm*8.065;
@@ -160,43 +111,36 @@ A{5} = eye(21);
 problem.A = A; problem.ev = EE; problem.A0 = A0;
 problem.x0 = round([B20;B40;B44;B22;-1e6],1,'significant');
 problem.x0 = [-1000,1,1,1,1]';
-% for i = 1:length(A)
-%     problem.A{i} = problem.A{i}*problem.x0(i);
-% problem.x0(i) = 1;
-% end
-%
 
-problem.Solver = @mldivide;  problem.obj_fun = @INSEvaulate;
+
+problem.Solver = @mldivide;  problem.obj_fun = @IEP;
 repeats = 1;
 
-epsilon = 0.001; LPSteps = Inf; doubled = false; NewtonSteps = 0; doubled = false;
+%
+epsilon = 1e-10; LPSteps = 500;NSteps =0;
+
 tic
 for i = 1:repeats
-    [newIterations,~] = RGD_LP_Newton(problem,epsilon,LPSteps,NewtonSteps,doubled);
-end; RGDLP01Time = toc/repeats;
-ekLPnew = vecnorm(newIterations.Iterates(:,2:end)-newIterations.Iterates(:,1:end-1),2,1);
+    [RGDLPIterations] = RGD_LP_Newton(problem,epsilon,LPSteps,NSteps,false)
+end
+RGDLPTime = toc/repeats
+%
+for i = 1:repeats
+    [LPIterations,] = LP_Newton(problem,epsilon,LPSteps,NSteps)
+end
+LPN01Time = toc/repeats
+
+%
+
+problem.obj_fun = @(a,b)IEPsmallest(a,b,false);
+tic
+for i = 1:repeats
+    [RGDLPMinIterations] = RGD_LP_Newton(problem,epsilon,LPSteps,NSteps,false)
+end
+RGDLPMinTime = toc/repeats
+
+
 %%
-tic
-for i = 1:repeats
-    oldIterations = LP_Newton(problem,epsilon,LPSteps,NewtonSteps);
-end;  LP01Time = toc/repeats;
-ekLPold = vecnorm(oldIterations.Iterates(:,2:end)-oldIterations.Iterates(:,1:end-1),2,1);
-
-
-epsilon = 0.00001; LPSteps = Inf; doubled = false; NewtonSteps = 0; doubled = false;
-tic
-for i = 1:repeats
-    [newIterations001,~] = RGD_LP_Newton(problem,epsilon,LPSteps,NewtonSteps,doubled);
-end; RGDLP001Time = toc/repeats;
-ekLPnew = vecnorm(newIterations001.Iterates(:,2:end)-newIterations001.Iterates(:,1:end-1),2,1);
-
-tic
-for i = 1:repeats
-    oldIterations001 = LP_Newton(problem,epsilon,LPSteps,NewtonSteps);
-end;  LP001Time = toc/repeats;
-ekLPold = vecnorm(oldIterations001.Iterates(:,2:end)-oldIterations001.Iterates(:,1:end-1),2,1);
-
-
 
 ["Algorithm", "No. Iterations","CPU Time (seconds)";...
     " RGD-LP, \epsilon = 0.01", newIterations.NIter ,RGDLP01Time;...
@@ -205,12 +149,8 @@ ekLPold = vecnorm(oldIterations001.Iterates(:,2:end)-oldIterations001.Iterates(:
     "LP, \epsilon = 0.001", oldIterations001.NIter,LP001Time
     ]
 
-
-%%
-    [newLPIterations,newNewtonIterations] =RGD_LP_Newton(problem,epsilon,0,100,doubled)
-
 %% Example 4 - Cr6 
-% clear all
+clear all
 rcm = 29979.2458;    % reciprocal cm to MHz
 meV = rcm*8.065;
 
@@ -251,101 +191,85 @@ A{3} = ham_ee(Sys1,1:N_electrons,'sparse')*1;
 
 
 A0 = sparse(length(A{1}),length(A{1}));
+% A0 = speye(size(A{1}))*5.21e6;
 H=ham(Sys,[0,0,0],'sparse');
 [Vecs,EE] = eig(full(H),'vector');
 Eigs=EE(1:24)-EE(1);
 
 problem.A = A; problem.ev = Eigs; problem.A0 = A0;
-problem.Solver = @mldivide;  problem.obj_fun = @INSEvaulate;
+problem.Solver = @mldivide;  problem.obj_fun = @IEP;
 problem.A{4} = speye(size(A{1}));
+tic;[Binv]= FormBinv(problem.A);toc
+problem.Binv = Binv;
 % f = spyplots(1,3,A{1},A{2},A{3});
 % f.Units = 'centimeters';
 % f.Position = [-50 10 20 14];
 % print(f, 'Figures/SpyPlots.eps', '-depsc')
 %%
-x0 = [1692,-3304,3.53e5,5.3e6]';
-x0 = [1e1,-3e1,3e2,5e3]';
-% x0 = [1e3,-1e3,1e5]';
+problem.x0 = [1692.5,-3304,3.53e5,5.2117e6]';
+problem.x0 = [1000,-3000,353000,5.21e6]';
+
+problem.x0 = [1,-1,1,1]'*1e4;
 % x0 = [1e3,-1e3,3e5,5e6]';
 
-
-
-Eigs= eigs(FormA(x0,A,problem.A0),length(problem.ev),'smallestreal');
-% x0(4) = (-Eigs(1)+ problem.ev(end));
-% x0(4) = 1e1
-
-% x0(4) = 1;
-
-% x0 = [1e3,-1e3,1e0,1]';
-problem.x0 = x0*1e0;
-
-% problem.x0(end+1) = -eigs(FormA(x0,A,problem.A0),1,"smallestreal");
-
-eigratio = problem.ev(end)/(Eigs(length(problem.ev))-Eigs(1))
-eigdiff = problem.ev(end)-eigs(FormA(x0,problem.A,problem.A0),1,'smallestreal')
-% eigratio = 1;
-% %
-% if eigratio>1e0   
-%     problem.x0 = x0.*eigratio;
-% else
-%     problem.x0 = x0;
-% end
-problem.StepTolerance = 1e-4;
 repeats = 1;
+Npoints = 2;
 
-%
-epsilon = 0;LPSteps =0; NewtonSteps = 3;
-problem.StepDifferenceTolerance = 1e0;
+X1 = linspace(0,5e3,Npoints);
+X2 = linspace(0,-5e3,Npoints);
+X3 = linspace(0,1e6,Npoints);
+X4 = linspace(0,1e7,Npoints);
+[x1,x2,x3,x4]=ndgrid(X1,X2,X3,X4);
+
+%%
 tic
-for i = 1:repeats
-    % [LPIterations,NewtonIterations] = Old_LP_Newton(problem,epsilon,LPSteps,NewtonSteps);
-    [~,OnlyNewtonIterations] = RGD_LP_Newton(problem,epsilon,LPSteps,NewtonSteps)
+for i = 1:numel(x1)
+    [F,R,J] = IEPsmallest([x1(i);x2(i);x3(i);x4(i)],problem);
+    p = - Binv*J'*R;
+    RGDMinx(:,:,i) = [x1(i);x2(i);x3(i);x4(i)] +p;
 end
-OnlyNewtonIterations.FinalPoint
-NewtonTime = toc/repeats;
-%
-
-epsilon = 1e-3; LPSteps =  10; NewtonSteps = 3;
-problem.StepTolerance = 1e-5;
-problem.StepDifferenceTolerance = 1e-2;
+toc
+%%
 tic
-for i = 1:repeats
-    % [LPIterations,NewtonIterations] = Old_LP_Newton(problem,epsilon,LPSteps,NewtonSteps);
-    [RGDLPIterations,RGDNewtonIterations] = RGD_LP_Newton(problem,epsilon,LPSteps,NewtonSteps)
+for i = 1:numel(x1)
+    [F,R,J] = IEP([x1(i);x2(i);x3(i);x4(i)],problem);
+    p = - Binv*J'*R;
+    RGDx(:,:,i) = [x1(i);x2(i);x3(i);x4(i)] +p;
 end
-RGDLPIterations.FinalPoint
-RGDNewtonIterations.FinalPoint
-RGDLPNTime = toc/repeats;
-
+toc
 %%
-epsilon = 1e2; LPSteps =  1000; NewtonSteps = 10;
 tic
-for i = 1:repeats
-    % [LPIterations,NewtonIterations] = Old_LP_Newton(problem,epsilon,LPSteps,NewtonSteps);
-    [LPIterations,NewtonIterations] = LP_Newton(problem,epsilon,LPSteps,NewtonSteps);
+for i = 1:numel(x1)
+    [QFull,DFull] = eig(full(FormA([x1(i);x2(i);x3(i);x4(i)],problem.A,problem.A0)),'vector');
+    if length(problem.ev)<length(DFull)
+        C = (DFull'-problem.ev).^2;
+        pairs = matchpairs(C,100*max(max(C)));
+        % D = DFull(pairs(:,2));
+        Dcomp = DFull;
+        Dmatch = DFull(pairs(:,2));
+        Dcomp(pairs(:,2))=[];
+        Qmatch = QFull(:,pairs(:,2));
+        Qcomp = QFull;
+        Qcomp(:,pairs(:,2)) =[];
+        % constants.ev = constants.ev((pairs(:,1)));
+        Q = [Qmatch,Qcomp];
+        % if any(pairs(:,2)~=[1:length(pairs)]')
+        %     pairs
+        % end
+    else
+         Q = QFull;  %D = DFull;
+         Dcomp = [];
+    end
+
+    % Z = Q*diag(constants.ev)*Q';
+    Z = Q*diag([problem.ev;Dcomp])*Q';
+    for j = 1:length(problem.A)
+        b(j,1) = trace((Z-problem.A0)'*problem.A{j});
+    end
+    x(:,:,i) = Binv*b;
 end
-LPNTime = toc/repeats;
-%%
-plotek(RGDLPIterations)
+toc
 
-%%
-
-A = problem.A;
-[Binv,B]=FormBinv(A);
-D = diag(1e3*[1,2,3,4]);
-A1{1} = A{1}*D(1,1);
-A1{2} = A{2}*D(2,2);
-A1{3} = A{3}*D(3,3);
-A1{4} = A{4}*D(4,4);
-[Binv1,B1]=FormBinv(A1);
-
-
-
-
-%%
-% LPIterations
-NewtonIterations
-NewtonIterations.FinalPoint
 
 
 %% Example 5 - Mn6 
