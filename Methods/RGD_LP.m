@@ -1,7 +1,9 @@
 function [CurrentLoop] = RGD_LP(constants)
 obj_fun = constants.obj_fun; NIter = 0;   x = constants.x0;      
 CurrentLoop.Iterates = x;
-
+if ~isfield(constants,'doubled')
+    constants.doubled = false;
+end
 alpha = 1; Fprev = inf; pprev=0;
 usecholesky = false;
 if isfield(constants, 'BCholeskyFactor')
