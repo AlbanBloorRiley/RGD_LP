@@ -9,11 +9,11 @@ pprev = 0;
         X.S = X.S + X.H(:,:,i)*X.R(i);
     end
     Hess = X.J'*X.J+X.S;
+    CurrentLoop.Error = X.F;
 [stop,CurrentLoop.ConvergenceFlag] = isminimum(X.F,x, inf,inf, NIter, constants);
 % Main Loop
 while stop == false
 
-    % p = - Hess\(X.J'*X.R);
     %  p1 = -mldivide(Hess,X.J'*X.R);
     % p = -lsqminnorm(Hess,X.J'*X.R);
     p = -constants.Solver(Hess,X.J'*X.R);
@@ -33,6 +33,7 @@ while stop == false
     pprev=p;
     % Save iterates for plotting
     CurrentLoop.Iterates = [CurrentLoop.Iterates, x];
+    CurrentLoop.Error = [CurrentLoop.Error,X.F];
 end
 CurrentLoop.FinalPoint = x;
 CurrentLoop.ErrorAtFinalPoint = obj_fun(x, constants);
