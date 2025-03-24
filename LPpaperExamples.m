@@ -283,7 +283,7 @@ Sys1.S = [2 2 5/2 5/2 5/2 5/2]; % MnIII has S = 2, MnII has S = 5/2
 
 clear A
  Sys1.J = [10*meV,0 0 0 0 0 0 0 0 0 0 0 0 0 0];
- problem.A0 = ham_ee(Sys1,1:length(Sys1.S),'sparse'); problem.A0 =sparse(32400,32400);
+ problem.A0 = ham_ee(Sys1,1:length(Sys1.S),'sparse');% problem.A0 =sparse(32400,32400);
 A{1} = stev(Sys1.S,[2,0,1],'sparse')+ stev(Sys1.S,[2,0,2],'sparse');
 % A{end+1} = stev(Sys1.S,[2,2,1],'sparse')+ stev(Sys1.S,[2,2,1],'sparse');
 Sys1.J = [0,1 0 1 0 0 1 0 1 0 0 0 0 0 0];
@@ -296,32 +296,27 @@ A{end+1} = ham_ee(Sys1,1:length(Sys1.S),'sparse');
 Sys1.J = [0 0 0 0 0 0 0 0 0 1 0 0 0 0 1];
 A{end+1} = ham_ee(Sys1,1:length(Sys1.S),'sparse');
 
-Sys1.J = [1 0 0 0 0 0 0 0 0 0 0 0 0 0 0];
-A{end+1} = ham_ee(Sys1,1:length(Sys1.S),'sparse'); 
-problem.Solver = @mldivide;  problem.obj_fun = @INSEvaulate;
+% Sys1.J = [1 0 0 0 0 0 0 0 0 0 0 0 0 0 0];
+% A{end+1} = ham_ee(Sys1,1:length(Sys1.S),'sparse'); 
+
+
+problem.Solver = @mldivide;  problem.obj_fun = @IEPsmallest;
 % f = spyplots(2,2,A{1},A{2},A{3},A{4});
 
 %%
 problem.x0 = [-21035 -1.9826e+05 1.9343e+05  48357 ]';
 %  problem.x0 = [-21035 -1.9826e+05  48357 ]';
-% problem.x0 = [2000000 -200000 200000   50000 ]';
-problem.x0 = [-20000 -200000   200000 50000 2000000]';
-problem.x0(end+1) = -eigs(FormA(problem.x0,A,problem.A0),1,"smallestreal");
-% problem.x0(end) = 1;
-A{6} = speye(32400,32400);problem.A = A; 
-%
-% xscaling = problem.x0; problem.A = scaleAx(problem.x0,A); problem.x0 = ones(length(problem.x0),1);
-repeats = 1;
-% % problem.x0 = ones(length(problem.x0),1)
-epsilon = 1e-2; LPSteps = 1000; doubled = false; NewtonSteps = 0;
-tic
-for i = 1:repeats
-    % [LPIterations,NewtonIterations] = Old_LP_Newton(problem,epsilon,LPSteps,NewtonSteps);
-    [LPIterations,NewtonIterations] = RGD_LP_Newton(problem,epsilon,LPSteps,NewtonSteps, doubled);
-end
-LPnewTime = toc/repeats;
-LPIterations
+% problem.x0 = [-2e4 -2e5 2e5   5e4 ]';
+% problem.x0 = [-20000 -200000   200000 50000 2000000]';
+problem.x0(end+1) =  -eigs(FormA(problem.x0,A,problem.A0),1,"smallestreal");
+problem.A = A; problem.A{end+1} = speye(32400,32400);
+problem.Binv = FormBinv(problem.A);
+%%
+epsilon = 1e-2; LPSteps = 10000;NSteps =0;
 
+tic
+[RGDLPIterations] = RGD_LP_Newton(problem,epsilon,LPSteps,NSteps,true)
+RGDLPTime = toc
 
 %%
 
@@ -341,8 +336,10 @@ D = diag(D); D = (D-D(1))./meV;
 MintOpt.Eigs = D;
 MintOpt.Vecs = Q;
 %%
+LPIterations.FinalPoint = problem.x0;
 Sys.S = [2 2 5/2 5/2 5/2 5/2]; % MnIII has S = 2, MnII has S = 5/2
-J_S4_S4   = LPIterations.FinalPoint(5)./(-2); % -5*meV;    % MnIII - MnIII.                       Rodolphe: Strong and AFM.    Keep fixed.
+% J_S4_S4   = LPIterations.FinalPoint(5)./(-2); %
+J_S4_S4   = -5*meV;    % MnIII - MnIII.                       Rodolphe: Strong and AFM.    Keep fixed.
 J_S4_S5_1 = LPIterations.FinalPoint(2)./(-2);  % MnIII - MnII, MnIII JT involved.     Rodolphe: Weak, FM or AFM.   Free value
 J_S4_S5_2 = LPIterations.FinalPoint(3)./(-2); % MnIII - MnII, MnIII JT not involved. Rodolphe: Weak and AFM.      Free value
 J_S5_S5   = LPIterations.FinalPoint(4)./(-2); 
