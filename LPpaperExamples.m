@@ -25,7 +25,7 @@ problem.ev = (-1.1:0.002:-1.061)'*1e2;
 %
 problem.StepTolerance= 1e-3; problem.MaxIter = 1000; repeats = 1;
 %
-problem.obj_fun = @(a,b)IEPsmallest(a,b,false);
+problem.obj_fun = @IEPsmallest;
 tic
 for i = 1:repeats
     RGDLPMinIterations = RGD_LP(problem);
@@ -76,7 +76,7 @@ problem.x0 = [-1000,1,1,1,0]';
 %%
 problem.StepTolerance= 1e-8; problem.MaxIter = 500; repeats = 100;
 %
-problem.obj_fun = @(a,b)IEPsmallest(a,b,false);
+problem.obj_fun = @IEPsmallest;
 tic
 for i = 1:repeats
     RGDLPMinIterations = RGD_LP(problem);
