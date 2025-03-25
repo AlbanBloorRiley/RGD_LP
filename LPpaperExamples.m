@@ -261,9 +261,10 @@ problem.A = A; problem.A{end+1} = speye(32400,32400);
 problem.Binv = FormBinv(problem.A);
 %%
 problem.StepTolerance= 1e-2; problem.MaxIter = 10000; 
-
-RGDLPMinIterations = RGD_LP(problem);
-
+%
+tic
+    RGDLPMinIterations = RGD_LP(problem);
+Mn6Time = toc;
 
 
 %%
