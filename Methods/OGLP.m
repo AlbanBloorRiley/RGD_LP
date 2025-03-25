@@ -7,6 +7,10 @@ Binv = FormBinv(constants.A);
 % Calculate residual, Jacobian and Hessian of R
 [X.F,X.R,X.J] = obj_fun(x, constants); FuncCount = 1;
 [stop,CurrentLoop.ConvergenceFlag] = isminimum(X.F,x, inf,inf, NIter, constants);
+
+OutputLineLength = fprintf('k = %d; f(x) = %d; |gradf(x)| = %d\n', NIter,X.F,norm(X.J'*X.R));
+fprintf(repmat(' ',1,OutputLineLength))
+
 % Main Loop
 while stop == false
 
@@ -17,7 +21,7 @@ while stop == false
         pairs = matchpairs(C,100*max(max(C)));
         % D = DFull(pairs(:,2));
         Dcomp = DFull;
-        Dmatch = DFull(pairs(:,2));
+        % Dmatch = DFull(pairs(:,2));
         Dcomp(pairs(:,2))=[];
         Qmatch = QFull(:,pairs(:,2));
         Qcomp = QFull;
@@ -39,8 +43,8 @@ while stop == false
     end
     xprev = x;
     x = Binv*b;
-    p1 = x-xprev;
-     p= - Binv*X.J'*X.R;
+    % p1 = x-xprev;
+     % p= - Binv*X.J'*X.R;
 
     % [x,xRGD]
 
@@ -48,8 +52,12 @@ while stop == false
     % Calculate residual, Jacobian of R
     [X.F,X.R,X.J] = obj_fun(x, constants); FuncCount = FuncCount +1;
 
-     [stop, CurrentLoop.ConvergenceFlag] = isminimum(X.F,x, p,pprev, NIter, constants);
-    pprev=p;
+    fprintf(repmat('\b',1,OutputLineLength))
+OutputLineLength = fprintf('k = %d; f(x) = %d; |gradf(x)| = %d\n', NIter,X.F,norm(X.J'*X.R));
+
+
+     [stop, CurrentLoop.ConvergenceFlag] = isminimum(X.F,x, x-xprev,Inf, NIter, constants);
+    % pprev=p;
     % Save iterates for plotting
     CurrentLoop.Iterates = [CurrentLoop.Iterates, x];
 end
