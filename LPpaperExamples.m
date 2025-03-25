@@ -73,7 +73,7 @@ problem.A = A; problem.ev = EE; problem.A0 = A0;
 problem.x0 = round([B20;B40;B44;B22;-1e6],1,'significant');
 problem.x0 = [-1000,1,1,1,0]';
 
-%%
+%
 problem.StepTolerance= 1e-8; problem.MaxIter = 500; repeats = 100;
 %
 problem.obj_fun = @IEPsmallest;
@@ -254,7 +254,7 @@ problem.Solver = @mldivide;  problem.obj_fun = @IEPsmallest;
 %%
 problem.x0 = [-21035 -1.9826e+05 1.9343e+05  48357 ]';
 %  problem.x0 = [-21035 -1.9826e+05  48357 ]';
-problem.x0 = [-3e4 -1e5 1e5   5e4 ]'*1e0;
+% problem.x0 = [-3e4 -1e5 1e5   5e4 ]'*1e0;
 % problem.x0 = [-20000 -200000   200000 50000 2000000]';
 problem.x0(end+1) =  -eigs(FormA(problem.x0,A,problem.A0),1,"smallestreal");
 problem.A = A; problem.A{end+1} = speye(32400,32400);
