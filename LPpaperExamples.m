@@ -11,60 +11,43 @@ for k = 2:l
     A{k} = (spdiags(1,[-k+1,k-1],N,N));
     nz = nnz(A{k});
     [Aindexed.i(end+1:end+nz),Aindexed.j(end+1:end+nz),Aindexed.v(end+1:end+nz)] =find(A{k});
-    % H{k,k,k} =find(A{k});
     Aindexed.NumV(k) = nz;
 end
 problem.A = A;
 
 step = 10;
-problem.x0 = 10*[1:step:step*l]';
-% problem.x0 =([-60,-3,0,3,60]')*1e1;
+% problem.x0 = 10*[1:step:step*l]';
 problem.x0 = ones(l,1);
-% problem.x0 = [-N/2:-1,1:N/2]';
-% problem.x0 = [1.1650, 0.6268, 0.0751, 0.3516, -0.6965, 1.6961, 0.0591, 1.7971, ...
-%     0.2641, 0.8717, -1.4462, -0.7012, 1.2460, -0.6390, 0.5773, -0.3600,...
-%     -0.1356, -1.3493, -1.2704, 0.9845]';      %For N = 20 (original example 2)
-problem.ev =  [-floor(N/4):-1,0,1:ceil(N/4)]';
-problem.ev = [-5,-4,-3,-2,-1]'*100;
-problem.ev = -[10,9,8,7,6,5,4,3,2,1]'*1e1;
+
+% problem.ev =  [-floor(N/4):-1,0,1:ceil(N/4)]';
+% problem.ev = [-5,-4,-3,-2,-1]'*100;
+% problem.ev = -[10,9,8,7,6,5,4,3,2,1]'*1e1;
 problem.ev = (-1.1:0.001:-1.081)'*5e2;
 
-% eigs(FormA(problem.x0,problem.A,problem. A0),21,'smallestreal')
-% eigs(FormA(problem.x0,problem.A,problem.A0),30,'smallestreal')
-
-
-   problem.obj_fun = @(a,b)IEPsmallest(a,b,false);
-repeats = 1;
-problem.Solver = @mldivide;
-tic;[Binv]= FormBinv(problem.A);toc
-problem.Binv = Binv;
 %%
-problem.StepTolerance= 1e-6; problem.MaxIter = 500;
+problem.StepTolerance= 1e-3; problem.MaxIter = 500; repeats = 1;
 %
 problem.obj_fun = @(a,b)IEPsmallest(a,b,false);
 tic
 for i = 1:repeats
-    RGDLPMinIterations = RGD_LP(problem)
+    RGDLPMinIterations = RGD_LP(problem);
     % [RGDLPMinIterations] = RGD_LP_Newton(problem,epsilon,LPSteps,NSteps,false)
 end
 RGDLPMinTime = toc/repeats
-
-
-%%
-
+%
 problem.obj_fun = @IEP;
 tic
 for i = 1:repeats
-    RGDLPMinIterations = RGD_LP(problem)
+    RGDLPIterations = RGD_LP(problem);
     % [RGDLPIterations] = RGD_LP_Newton(problem,epsilon,LPSteps,NSteps,false)
 end
 RGDLPTime = toc/repeats
-%%
+%
+tic
 for i = 1:repeats
-    [LPIterations,] = LP_Newton(problem,epsilon,LPSteps,NSteps)
+    [LPIterations] = OGLP(problem);
 end
-LPN01Time = toc/repeats
-
+RGDLPMinTime = toc/repeats
 
 %%
 % ["Algorithm", "No. Iterations","CPU Time (seconds)";...
@@ -112,32 +95,35 @@ problem.A = A; problem.ev = EE; problem.A0 = A0;
 problem.x0 = round([B20;B40;B44;B22;-1e6],1,'significant');
 problem.x0 = [-1000,1,1,1,1]';
 
-
-problem.Solver = @mldivide;  problem.obj_fun = @IEP;
-repeats = 1;
-
+%%
+problem.StepTolerance= 1e-8; problem.MaxIter = 500; repeats = 10;
 %
-epsilon = 1e-10; LPSteps = 500;NSteps =0;
-
-tic
-for i = 1:repeats
-    [RGDLPIterations] = RGD_LP_Newton(problem,epsilon,LPSteps,NSteps,false)
-end
-RGDLPTime = toc/repeats
-%
-for i = 1:repeats
-    [LPIterations,] = LP_Newton(problem,epsilon,LPSteps,NSteps)
-end
-LPN01Time = toc/repeats
-
-%
-
 problem.obj_fun = @(a,b)IEPsmallest(a,b,false);
 tic
 for i = 1:repeats
-    [RGDLPMinIterations] = RGD_LP_Newton(problem,epsilon,LPSteps,NSteps,false)
+    RGDLPMinIterations = RGD_LP(problem);
+    % [RGDLPMinIterations] = RGD_LP_Newton(problem,epsilon,LPSteps,NSteps,false)
 end
 RGDLPMinTime = toc/repeats
+%
+problem.obj_fun = @IEP;
+tic
+for i = 1:repeats
+    RGDLPIterations = RGD_LP(problem);
+    % [RGDLPIterations] = RGD_LP_Newton(problem,epsilon,LPSteps,NSteps,false)
+end
+RGDLPTime = toc/repeats
+%
+tic
+for i = 1:repeats
+    [LPIterations] = OGLP(problem);
+end
+RGDLPMinTime = toc/repeats
+% tic
+% for i = 1:repeats
+%     [RGDLPMinIterations] = RGD_LP_Newton(problem,epsilon,LPSteps,NSteps,false)
+% end
+% RGDLPMinTime = toc/repeats
 
 
 %%
