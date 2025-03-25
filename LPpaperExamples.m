@@ -260,11 +260,11 @@ problem.x0(end+1) =  -eigs(FormA(problem.x0,A,problem.A0),1,"smallestreal");
 problem.A = A; problem.A{end+1} = speye(32400,32400);
 problem.Binv = FormBinv(problem.A);
 %%
-epsilon = 1e0; LPSteps = 1000;NSteps =0;
+problem.StepTolerance= 1e-2; problem.MaxIter = 10000; 
 
-tic
-[RGDLPIterations] = RGD_LP_Newton(problem,epsilon,LPSteps,NSteps,true)
-RGDLPTime = toc
+RGDLPMinIterations = RGD_LP(problem);
+
+
 
 %%
 
