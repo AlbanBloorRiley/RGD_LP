@@ -292,13 +292,13 @@ problem.Solver = @mldivide;  problem.obj_fun = @IEPsmallest;
 %%
 problem.x0 = [-21035 -1.9826e+05 1.9343e+05  48357 ]';
 %  problem.x0 = [-21035 -1.9826e+05  48357 ]';
-% problem.x0 = [-2e4 -2e5 2e5   5e4 ]';
+problem.x0 = [-3e4 -1e5 1e5   5e4 ]'*1e0;
 % problem.x0 = [-20000 -200000   200000 50000 2000000]';
 problem.x0(end+1) =  -eigs(FormA(problem.x0,A,problem.A0),1,"smallestreal");
 problem.A = A; problem.A{end+1} = speye(32400,32400);
 problem.Binv = FormBinv(problem.A);
 %%
-epsilon = 1e-2; LPSteps = 10000;NSteps =0;
+epsilon = 1e0; LPSteps = 1000;NSteps =0;
 
 tic
 [RGDLPIterations] = RGD_LP_Newton(problem,epsilon,LPSteps,NSteps,true)
@@ -321,14 +321,16 @@ D0 = diag(D0); D0 =  (D0-D0(1))./meV;
 D = diag(D); D = (D-D(1))./meV;
 MintOpt.Eigs = D;
 MintOpt.Vecs = Q;
+
 %%
-LPIterations.FinalPoint = problem.x0;
+% Iterates = problem.x0;
+Iterates = RGDLPIterations.FinalPoint;
 Sys.S = [2 2 5/2 5/2 5/2 5/2]; % MnIII has S = 2, MnII has S = 5/2
 % J_S4_S4   = LPIterations.FinalPoint(5)./(-2); %
 J_S4_S4   = -5*meV;    % MnIII - MnIII.                       Rodolphe: Strong and AFM.    Keep fixed.
-J_S4_S5_1 = LPIterations.FinalPoint(2)./(-2);  % MnIII - MnII, MnIII JT involved.     Rodolphe: Weak, FM or AFM.   Free value
-J_S4_S5_2 = LPIterations.FinalPoint(3)./(-2); % MnIII - MnII, MnIII JT not involved. Rodolphe: Weak and AFM.      Free value
-J_S5_S5   = LPIterations.FinalPoint(4)./(-2); 
+J_S4_S5_1 = Iterates(2)./(-2);  % MnIII - MnII, MnIII JT involved.     Rodolphe: Weak, FM or AFM.   Free value
+J_S4_S5_2 = Iterates(3)./(-2); % MnIII - MnII, MnIII JT not involved. Rodolphe: Weak and AFM.      Free value
+J_S5_S5   = Iterates(4)./(-2); 
 J_AB = J_S4_S4;
 J_A1 = J_S4_S5_1; J_A3 = J_S4_S5_1; J_B2 = J_S4_S5_1; J_B4 = J_S4_S5_1; %For these, the MnIII JT axis is involved. Can be FM or AFM
 J_A2 = J_S4_S5_2; J_A4 = J_S4_S5_2; J_B1 = J_S4_S5_2; J_B3 = J_S4_S5_2; %For these, the MnIII JT axis is NOT involved. Can only be AFM
@@ -336,7 +338,7 @@ J_12 = J_S5_S5;   J_34 = J_S5_S5;
 J_14 = -0.00.*meV;         J_23 = J_14; %Assumed zero. Only interacts via a pivalate bridge.
 J_13 = -0.00.*meV;         J_24 = J_13; 
 Sys.J = [J_AB J_A1 J_A2 J_A3 J_A4 J_B1 J_B2 J_B3 J_B4 J_12 J_13 J_14 J_23 J_24 J_34].*(-2); %-2JS.S formalism
-DIII = LPIterations.FinalPoint(1)./3; % MnIII anisotropy. Free Value 
+DIII = Iterates(1)./3; % MnIII anisotropy. Free Value 
 % DIII = -0
 % .02*meV;
 EIII = 0*DIII;   % MnIII rhombicity. For INS, assume 0.
