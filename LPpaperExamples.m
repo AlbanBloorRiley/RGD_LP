@@ -28,22 +28,22 @@ problem.StepTolerance= 1e-3; problem.MaxIter = 1000; repeats = 1;
 problem.obj_fun = @(a,b)IEPsmallest(a,b,false);
 tic
 for i = 1:repeats
-    RGDLPMinIterations = RGD_LP(problem)
+    RGDLPMinIterations = RGD_LP(problem);
 end
 RGDLPMinTime = toc/repeats
 %
 problem.obj_fun = @IEP;
 tic
 for i = 1:repeats
-    RGDLPIterations = RGD_LP(problem)
+    RGDLPIterations = RGD_LP(problem);
 end
 RGDLPTime = toc/repeats
 %
 tic
 for i = 1:repeats
-    [LPIterations] = OGLP(problem)
+    [LPIterations] = OGLP(problem);
 end
-RGDLPMinTime = toc/repeats
+LPTime = toc/repeats
 
 
 %% Example 2 - Mn12 
@@ -61,7 +61,6 @@ Sys.B4 = [B44 0 0 0 B40 0 0 0 0];  % B(k=4,q) with q = +4,+3,+2,+1,0,-1,-2,-3,-4
 H = ham(Sys,[0,0,0]);  [~,E]=eig(H);
 EE = diag(E);  Exp.ev=EE-EE(1);
 
-% A{5} = speye(length(EE));
 %The Stevens Operators
 
 A0 = sparse(21,21);
@@ -72,16 +71,15 @@ A{4} = stev(10,[2,2]);
 A{5} = eye(21);
 problem.A = A; problem.ev = EE; problem.A0 = A0;
 problem.x0 = round([B20;B40;B44;B22;-1e6],1,'significant');
-problem.x0 = [-1000,1,1,1,1]';
+problem.x0 = [-1000,1,1,1,0]';
 
 %%
-problem.StepTolerance= 1e-8; problem.MaxIter = 500; repeats = 10;
+problem.StepTolerance= 1e-8; problem.MaxIter = 500; repeats = 100;
 %
 problem.obj_fun = @(a,b)IEPsmallest(a,b,false);
 tic
 for i = 1:repeats
     RGDLPMinIterations = RGD_LP(problem);
-    % [RGDLPMinIterations] = RGD_LP_Newton(problem,epsilon,LPSteps,NSteps,false)
 end
 RGDLPMinTime = toc/repeats
 %
@@ -89,30 +87,15 @@ problem.obj_fun = @IEP;
 tic
 for i = 1:repeats
     RGDLPIterations = RGD_LP(problem);
-    % [RGDLPIterations] = RGD_LP_Newton(problem,epsilon,LPSteps,NSteps,false)
 end
 RGDLPTime = toc/repeats
 %
 tic
 for i = 1:repeats
-    [LPIterations] = OGLP(problem);
+    LPIterations = OGLP(problem);
 end
-RGDLPMinTime = toc/repeats
-% tic
-% for i = 1:repeats
-%     [RGDLPMinIterations] = RGD_LP_Newton(problem,epsilon,LPSteps,NSteps,false)
-% end
-% RGDLPMinTime = toc/repeats
+LPTime = toc/repeats
 
-
-%%
-
-["Algorithm", "No. Iterations","CPU Time (seconds)";...
-    " RGD-LP, \epsilon = 0.01", newIterations.NIter ,RGDLP01Time;...
-    "RGD-LP, \epsilon = 0.001", newIterations001.NIter,RGDLP001Time;...
-    "LP, \epsilon = 0.01", oldIterations.NIter,LP01Time;...
-    "LP, \epsilon = 0.001", oldIterations001.NIter,LP001Time
-    ]
 
 %% Example 4 - Cr6 
 clear all
@@ -171,67 +154,67 @@ problem.Binv = Binv;
 % f.Position = [-50 10 20 14];
 % print(f, 'Figures/SpyPlots.eps', '-depsc')
 %%
-problem.x0 = [1692.5,-3304,3.53e5,5.2117e6]';
-problem.x0 = [1000,-3000,353000,5.21e6]';
-
-problem.x0 = [1,-1,1,1]'*1e4;
+% problem.x0 = [1692.5,-3304,3.53e5,5.2117e6]';
+% problem.x0 = [1000,-3000,353000,5.21e6]';
+% 
+% problem.x0 = [1,-1,1,1]'*1e4;
 % x0 = [1e3,-1e3,3e5,5e6]';
 
 repeats = 1;
-Npoints = 2;
+Npoints = 4;
 
 X1 = linspace(0,5e3,Npoints);
 X2 = linspace(0,-5e3,Npoints);
 X3 = linspace(0,1e6,Npoints);
 X4 = linspace(0,1e7,Npoints);
 [x1,x2,x3,x4]=ndgrid(X1,X2,X3,X4);
-
+l = 4;
+NIterates = Npoints^l;
 %%
+RGDMinx = zeros(l,NIterates);
 tic
-for i = 1:numel(x1)
+for i = 1:NIterates
     [F,R,J] = IEPsmallest([x1(i);x2(i);x3(i);x4(i)],problem);
     p = - Binv*J'*R;
-    RGDMinx(:,:,i) = [x1(i);x2(i);x3(i);x4(i)] +p;
+    RGDMinx(:,i) = [x1(i);x2(i);x3(i);x4(i)] +p;
 end
 toc
-%%
+%
+RGDx = zeros(l,NIterates);
 tic
-for i = 1:numel(x1)
+for i = 1:NIterates
     [F,R,J] = IEP([x1(i);x2(i);x3(i);x4(i)],problem);
     p = - Binv*J'*R;
-    RGDx(:,:,i) = [x1(i);x2(i);x3(i);x4(i)] +p;
+    RGDx(:,i) = [x1(i);x2(i);x3(i);x4(i)] +p;
 end
 toc
-%%
+%
+x = zeros(l,NIterates);
 tic
-for i = 1:numel(x1)
+for i = 1:NIterates
     [QFull,DFull] = eig(full(FormA([x1(i);x2(i);x3(i);x4(i)],problem.A,problem.A0)),'vector');
     if length(problem.ev)<length(DFull)
         C = (DFull'-problem.ev).^2;
         pairs = matchpairs(C,100*max(max(C)));
         % D = DFull(pairs(:,2));
         Dcomp = DFull;
-        Dmatch = DFull(pairs(:,2));
+        % Dmatch = DFull(pairs(:,2));
         Dcomp(pairs(:,2))=[];
         Qmatch = QFull(:,pairs(:,2));
         Qcomp = QFull;
         Qcomp(:,pairs(:,2)) =[];
-        % constants.ev = constants.ev((pairs(:,1)));
-        Q = [Qmatch,Qcomp];
-        % if any(pairs(:,2)~=[1:length(pairs)]')
-        %     pairs
-        % end
+        
+         Z = [Qmatch,Qcomp]*diag([problem.ev;Dcomp])*[Qmatch,Qcomp]';
     else
-         Q = QFull;  %D = DFull;
-         Dcomp = [];
+        Z = QFull*diag(problem.ev)*QFull';
+        % Q = QFull;  %D = DFull;
+        % Dcomp = [];
     end
-
-    % Z = Q*diag(constants.ev)*Q';
-    Z = Q*diag([problem.ev;Dcomp])*Q';
-    for j = 1:length(problem.A)
+    b = zeros(l,1);
+    for j = 1:l
         b(j,1) = trace((Z-problem.A0)'*problem.A{j});
     end
-    x(:,:,i) = Binv*b;
+    x(:,i) = Binv*b;
 end
 toc
 
