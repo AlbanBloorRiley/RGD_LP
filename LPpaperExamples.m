@@ -16,55 +16,34 @@ end
 problem.A = A;
 
 step = 10;
-% problem.x0 = 10*[1:step:step*l]';
-problem.x0 = ones(l,1);
 
-% problem.ev =  [-floor(N/4):-1,0,1:ceil(N/4)]';
-% problem.ev = [-5,-4,-3,-2,-1]'*100;
-% problem.ev = -[10,9,8,7,6,5,4,3,2,1]'*1e1;
-problem.ev = (-1.1:0.001:-1.081)'*5e2;
+problem.x0 = -ones(l,1);
 
-%%
-problem.StepTolerance= 1e-3; problem.MaxIter = 500; repeats = 1;
+
+problem.ev = (-1.1:0.002:-1.061)'*1e2;
+
+%
+problem.StepTolerance= 1e-3; problem.MaxIter = 1000; repeats = 1;
 %
 problem.obj_fun = @(a,b)IEPsmallest(a,b,false);
 tic
 for i = 1:repeats
-    RGDLPMinIterations = RGD_LP(problem);
-    % [RGDLPMinIterations] = RGD_LP_Newton(problem,epsilon,LPSteps,NSteps,false)
+    RGDLPMinIterations = RGD_LP(problem)
 end
 RGDLPMinTime = toc/repeats
 %
 problem.obj_fun = @IEP;
 tic
 for i = 1:repeats
-    RGDLPIterations = RGD_LP(problem);
-    % [RGDLPIterations] = RGD_LP_Newton(problem,epsilon,LPSteps,NSteps,false)
+    RGDLPIterations = RGD_LP(problem)
 end
 RGDLPTime = toc/repeats
 %
 tic
 for i = 1:repeats
-    [LPIterations] = OGLP(problem);
+    [LPIterations] = OGLP(problem)
 end
 RGDLPMinTime = toc/repeats
-
-%%
-% ["Algorithm", "No. Iterations","CPU Time (seconds)";...
-%     "Newton", OnlyNewtonIterations.NIter, NewtonTime ;...
-%     "Old LP-Newton, \epsilon = 0.01", string(LPIterations01.NIter+"+"+NewtonIterations01.NIter),Old01Time;...
-%     "Old LP-Newton, \epsilon = 0.001", string(LPIterations001.NIter+"+"+NewtonIterations001.NIter),Old001Time;...
-%     "New LP-Newton, \epsilon = 0.01", string(RGDLPIterations01.NIter+"+"+RGDNewtonIterations01.NIter),RGDN01Time;...
-%     "New LP-Newton, \epsilon = 0.001", string(RGDLPIterations001.NIter+"+"+RGDNewtonIterations001.NIter),RGDN001Time
-%     ]
-colours = colororder;
-f = figure(1);
-clf
-semilogy(sum((RGDLPIterations.Iterates(:,2:end)-RGDLPIterations.Iterates(:,1:end-1)).^2), LineWidth=1.5)
-hold on
-semilogy([nan(1,RGDLPIterations.NIter-1),sum((RGDNewtonIterations.Iterates(:,2:end)-RGDNewtonIterations.Iterates(:,1:end-1)).^2)], 'color',colours(1,:),LineWidth=1.5)
-
-hold off
 
 
 %% Example 2 - Mn12 
