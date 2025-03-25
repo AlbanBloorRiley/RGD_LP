@@ -28,9 +28,9 @@ while stop == false
         Qcomp(:,pairs(:,2)) =[];
         % constants.ev = constants.ev((pairs(:,1)));
         Q = [Qmatch,Qcomp];
-        if any(pairs(:,2)~=[1:length(pairs)]')
-            pairs
-        end
+        % if any(pairs(:,2)~=[1:length(pairs)]')
+        %     pairs
+        % end
     else
          Q = QFull;  %D = DFull;
          Dcomp = [];
