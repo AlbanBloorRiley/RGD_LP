@@ -73,7 +73,7 @@ problem.A = A; problem.ev = EE; problem.A0 = A0;
 problem.x0 = round([B20;B40;B44;B22;-1e6],1,'significant');
 problem.x0 = [-1000,1,1,1,0]';
 
-%
+%%
 problem.StepTolerance= 1e-8; problem.MaxIter = 500; repeats = 100;
 %
 problem.obj_fun = @IEPsmallest;
@@ -161,25 +161,31 @@ problem.Binv = Binv;
 % x0 = [1e3,-1e3,3e5,5e6]';
 
 repeats = 1;
-Npoints = 4;
+Npoints = 5;
 
 X1 = linspace(0,5e3,Npoints);
 X2 = linspace(0,-5e3,Npoints);
-X3 = linspace(0,1e6,Npoints);
-X4 = linspace(0,1e7,Npoints);
+X3 = linspace(0,5e6,Npoints);
+X4 = linspace(0,5e6,Npoints);
+X1 = logspace(3,7,Npoints);
+X2 = -logspace(3,7,Npoints);
+X3 = logspace(3,7,Npoints);
+X4 = logspace(3,7,Npoints);
 [x1,x2,x3,x4]=ndgrid(X1,X2,X3,X4);
 l = 4;
 NIterates = Npoints^l;
+
+%556 for N =5 3to6
 %%
 RGDMinx = zeros(l,NIterates);
 tic
 for i = 1:NIterates
     [F,R,J] = IEPsmallest([x1(i);x2(i);x3(i);x4(i)],problem);
-    p = - Binv*J'*R;
-    RGDMinx(:,i) = [x1(i);x2(i);x3(i);x4(i)] +p;
+    p(:,i) = - Binv*J'*R;
+    RGDMinx(:,i) = [x1(i);x2(i);x3(i);x4(i)] +p(:,i);
 end
 toc
-%
+%%
 RGDx = zeros(l,NIterates);
 tic
 for i = 1:NIterates
@@ -253,6 +259,8 @@ problem.Solver = @mldivide;  problem.obj_fun = @IEPsmallest;
 
 %%
 problem.x0 = [-21035 -1.9826e+05 1.9343e+05  48357 ]';
+problem.x0 = [-2e4 -2e+05 2e+05  5e5 ]'/10;
+% problem.x0 = [-21035 -1.9826e+05 1.9343e+05  48357 10*meV]';
 %  problem.x0 = [-21035 -1.9826e+05  48357 ]';
 % problem.x0 = [-3e4 -1e5 1e5   5e4 ]'*1e0;
 % problem.x0 = [-20000 -200000   200000 50000 2000000]';
@@ -260,7 +268,9 @@ problem.x0(end+1) =  -eigs(FormA(problem.x0,A,problem.A0),1,"smallestreal");
 problem.A = A; problem.A{end+1} = speye(32400,32400);
 problem.Binv = FormBinv(problem.A);
 %%
-problem.StepTolerance= 1e-2; problem.MaxIter = 10000; 
+problem.Verbose = true;
+problem.StepTolerance= 1e-1; problem.MaxIter = 1000; 
+problem.StepDifferenceTolerance = 1e-4;problem.StepRelativeTolerance = 2e-8;
 %
 tic
     RGDLPMinIterations = RGD_LP(problem);
@@ -270,7 +280,7 @@ Mn6Time = toc;
 %%
 
 
-colours = colororder;
+% colours = colororder;
 f = figure(1);
 clf
 % semilogy(sum((RGDLPMinIterations.Iterates(:,2:end)-RGDLPMinIterations.Iterates(:,1:end-1)).^2), LineWidth=1.5)
