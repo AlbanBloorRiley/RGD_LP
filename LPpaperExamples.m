@@ -273,9 +273,24 @@ Mn6Time = toc;
 colours = colororder;
 f = figure(1);
 clf
-semilogy(sum((LPIterations.Iterates(:,2:end)-LPIterations.Iterates(:,1:end-1)).^2), LineWidth=1.5)
-hold on
-semilogy([nan(1,LPIterations.NIter-1),sum((NewtonIterations.Iterates(:,2:end)-NewtonIterations.Iterates(:,1:end-1)).^2)], 'color',colours(1,:),LineWidth=1.5)
+% semilogy(sum((RGDLPMinIterations.Iterates(:,2:end)-RGDLPMinIterations.Iterates(:,1:end-1)).^2), LineWidth=1.5)
+[Binv,B] = FormBinv(problem.A);
+p =RGDLPMinIterations.Iterates(:,2:end)-RGDLPMinIterations.Iterates(:,1:end-1);
+semilogy(sqrt(sum(p.^2)./(sum(RGDLPMinIterations.Iterates(:,end-1).^2))));ylabel("||p^k||/||x^k||")
+% semilogy(sqrt(sum(p.^2)));ylabel("||p^k||")
+% semilogy(sqrt(sum(B*p.*p,1)));ylabel("||p^k||_g")
+%
+% ylim([0,1e2])
+xlabel("Iteration")
+
+
+f.Units = 'centimeters';
+f.Position = [-50 10 20 14];
+linestyleorder('mixedstyles')
+%
+print(f, 'Figures/Mn6Convergence.eps', '-depsc')
+% hold on
+% semilogy([nan(1,LPIterations.NIter-1),sum((NewtonIterations.Iterates(:,2:end)-NewtonIterations.Iterates(:,1:end-1)).^2)], 'color',colours(1,:),LineWidth=1.5)
 % 
 %%
 [Q,D] = eigs(FormA(LPIterations.FinalPoint, problem.A,problem.A0),length(problem.ev),'smallestreal');
@@ -287,7 +302,7 @@ MintOpt.Vecs = Q;
 
 %%
 % Iterates = problem.x0;
-Iterates = RGDLPIterations.FinalPoint;
+Iterates = RGDLPMinIterations.FinalPoint;
 Sys.S = [2 2 5/2 5/2 5/2 5/2]; % MnIII has S = 2, MnII has S = 5/2
 % J_S4_S4   = LPIterations.FinalPoint(5)./(-2); %
 J_S4_S4   = -5*meV;    % MnIII - MnIII.                       Rodolphe: Strong and AFM.    Keep fixed.
