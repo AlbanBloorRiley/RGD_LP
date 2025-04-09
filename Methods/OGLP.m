@@ -2,7 +2,6 @@ function [CurrentLoop] = OGLP(constants)
 obj_fun = constants.obj_fun; NIter = 0;   x = constants.x0; l = length(x);
 N = length(constants.A{1});
 CurrentLoop.Iterates = x;
-% pprev = 0;
 Binv = FormBinv(constants.A);
 
 if isfield(constants, 'Verbose')
@@ -26,19 +25,14 @@ while stop == false
     if length(constants.ev)<N
         C = (DFull'-constants.ev).^2;
         pairs = matchpairs(C,100*max(max(C)));
-        % D = DFull(pairs(:,2));
-        Dcomp = DFull;
-        % Dmatch = DFull(pairs(:,2));
-        Dcomp(pairs(:,2))=[];
+        Dcomp = DFull(~ismember(1:N,pairs(:,2)));
         Qmatch = QFull(:,pairs(:,2));
-        Qcomp = QFull;
-        Qcomp(:,pairs(:,2)) =[];
-        
+        Qcomp = QFull(:,~ismember(1:N,pairs(:,2)));
+
          Z = [Qmatch,Qcomp]*diag([constants.ev;Dcomp])*[Qmatch,Qcomp]';
     else
         Z = QFull*diag(constants.ev)*QFull';
-        % Q = QFull;  %D = DFull;
-        % Dcomp = [];
+
     end
 
     b = zeros(l,1);
@@ -47,10 +41,7 @@ while stop == false
     end
     xprev = x;
     x = Binv*b;
-    % p1 = x-xprev;
-    % p= - Binv*X.J'*X.R;
 
-    % [x,xRGD]
 
     NIter = NIter + 1;
     % Calculate residual, Jacobian of R
@@ -62,7 +53,6 @@ while stop == false
     end
 
     [stop, CurrentLoop.ConvergenceFlag] = isminimum(X.F,x, x-xprev,Inf, NIter, constants);
-    % pprev=p;
     % Save iterates for plotting
     CurrentLoop.Iterates = [CurrentLoop.Iterates, x];
 end
