@@ -237,7 +237,7 @@ Sys1.S = [2 2 5/2 5/2 5/2 5/2]; % MnIII has S = 2, MnII has S = 5/2
 
 clear A
  Sys1.J = [10*meV,0 0 0 0 0 0 0 0 0 0 0 0 0 0];
- problem.A0 = ham_ee(Sys1,1:length(Sys1.S),'sparse');% problem.A0 =sparse(32400,32400);
+ problem.A0 = ham_ee(Sys1,1:length(Sys1.S),'sparse'); problem.A0 =sparse(32400,32400);
 A{1} = stev(Sys1.S,[2,0,1],'sparse')+ stev(Sys1.S,[2,0,2],'sparse');
 % A{end+1} = stev(Sys1.S,[2,2,1],'sparse')+ stev(Sys1.S,[2,2,1],'sparse');
 Sys1.J = [0,1 0 1 0 0 1 0 1 0 0 0 0 0 0];
@@ -250,8 +250,8 @@ A{end+1} = ham_ee(Sys1,1:length(Sys1.S),'sparse');
 Sys1.J = [0 0 0 0 0 0 0 0 0 1 0 0 0 0 1];
 A{end+1} = ham_ee(Sys1,1:length(Sys1.S),'sparse');
 
-% Sys1.J = [1 0 0 0 0 0 0 0 0 0 0 0 0 0 0];
-% A{end+1} = ham_ee(Sys1,1:length(Sys1.S),'sparse'); 
+Sys1.J = [1 0 0 0 0 0 0 0 0 0 0 0 0 0 0];
+A{end+1} = ham_ee(Sys1,1:length(Sys1.S),'sparse'); 
 
 
 problem.Solver = @mldivide;  problem.obj_fun = @IEPsmallest;
@@ -259,22 +259,24 @@ problem.Solver = @mldivide;  problem.obj_fun = @IEPsmallest;
 
 %%
 problem.x0 = [-21035 -1.9826e+05 1.9343e+05  48357 ]';
-problem.x0 = [-2e4 -2e+05 2e+05  5e5 ]'/10;
+problem.x0 = [-1e4 -1e+05 1e+05  4e5 ]'*1e-1;
+problem.x0 = [1,1,1,1,1]'*1e2;
 % problem.x0 = [-21035 -1.9826e+05 1.9343e+05  48357 10*meV]';
 %  problem.x0 = [-21035 -1.9826e+05  48357 ]';
 % problem.x0 = [-3e4 -1e5 1e5   5e4 ]'*1e0;
 % problem.x0 = [-20000 -200000   200000 50000 2000000]';
-problem.x0(end+1) =  -eigs(FormA(problem.x0,A,problem.A0),1,"smallestreal");
+% problem.x0(end+1) =  -eigs(FormA(problem.x0,A,problem.A0),1,"smallestreal");
+problem.x0(end+1) = 2e7;
 problem.A = A; problem.A{end+1} = speye(32400,32400);
 problem.Binv = FormBinv(problem.A);
 %%
 problem.Verbose = true;
-problem.StepTolerance= 1e-1; problem.MaxIter = 1000; 
-problem.StepDifferenceTolerance = 1e-4;problem.StepRelativeTolerance = 2e-8;
+problem.StepTolerance= 1e-1; problem.MaxIter = 600; 
+problem.StepDifferenceTolerance = 1e-5;problem.StepRelativeTolerance = 1e-7;
 %
 tic
     RGDLPMinIterations = RGD_LP(problem);
-Mn6Time = toc;
+Mn6Time = toc
 
 
 %%
@@ -285,20 +287,30 @@ f = figure(1);
 clf
 % semilogy(sum((RGDLPMinIterations.Iterates(:,2:end)-RGDLPMinIterations.Iterates(:,1:end-1)).^2), LineWidth=1.5)
 [Binv,B] = FormBinv(problem.A);
-p =RGDLPMinIterations.Iterates(:,2:end)-RGDLPMinIterations.Iterates(:,1:end-1);
-semilogy(sqrt(sum(p.^2)./(sum(RGDLPMinIterations.Iterates(:,end-1).^2))));ylabel("||p^k||/||x^k||")
+hold on
+p =(RGDLPMinIterations.Iterates(:,2:end)-RGDLPMinIterations.Iterates(:,1:end-1));
+% semilogy(sqrt(sum(p.^2)./(sum(RGDLPMinIterations.Iterates(:,end-1).^2))));ylabel("||p^k||/||x^k||")
 % semilogy(sqrt(sum(p.^2)));ylabel("||p^k||")
+
 % semilogy(sqrt(sum(B*p.*p,1)));ylabel("||p^k||_g")
+semilogy(sqrt(sum(B*p.*p,1))./sqrt(sum(RGDLPMinIterations.Iterates(:,end-1)'*B*RGDLPMinIterations.Iterates(:,end-1),1)),LineWidth=2);       ylabel("||p^k||_g/||x^k||_g")
+
 %
+yscale('log')
+hold off
 % ylim([0,1e2])
+xlim([0,600])
 xlabel("Iteration")
+grid("on")
 
 
 f.Units = 'centimeters';
 f.Position = [-50 10 20 14];
 linestyleorder('mixedstyles')
 %
-print(f, 'Figures/Mn6Convergence.eps', '-depsc')
+print(f, ["Figures/Mn6Convergence"+num2str(problem.x0')+".png"], '-dpng')
+
+print(f, "Figures/Mn6Convergence100.eps", '-depsc')
 % hold on
 % semilogy([nan(1,LPIterations.NIter-1),sum((NewtonIterations.Iterates(:,2:end)-NewtonIterations.Iterates(:,1:end-1)).^2)], 'color',colours(1,:),LineWidth=1.5)
 % 
@@ -314,8 +326,8 @@ MintOpt.Vecs = Q;
 % Iterates = problem.x0;
 Iterates = RGDLPMinIterations.FinalPoint;
 Sys.S = [2 2 5/2 5/2 5/2 5/2]; % MnIII has S = 2, MnII has S = 5/2
-% J_S4_S4   = LPIterations.FinalPoint(5)./(-2); %
-J_S4_S4   = -5*meV;    % MnIII - MnIII.                       Rodolphe: Strong and AFM.    Keep fixed.
+% J_S4_S4   = RGDLPMinIterations.FinalPoint(5)./(-2); %
+% J_S4_S4   = -5*meV;    % MnIII - MnIII.                       Rodolphe: Strong and AFM.    Keep fixed.
 J_S4_S5_1 = Iterates(2)./(-2);  % MnIII - MnII, MnIII JT involved.     Rodolphe: Weak, FM or AFM.   Free value
 J_S4_S5_2 = Iterates(3)./(-2); % MnIII - MnII, MnIII JT not involved. Rodolphe: Weak and AFM.      Free value
 J_S5_S5   = Iterates(4)./(-2); 
