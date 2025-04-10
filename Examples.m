@@ -41,7 +41,7 @@ RGDLPTime = toc/repeats
 %
 tic
 for i = 1:repeats
-    [LPIterations] = OGLP(problem);
+    [LPIterations] = LP(problem);
 end
 LPTime = toc/repeats
 
@@ -92,7 +92,7 @@ RGDLPTime = toc/repeats
 %
 tic
 for i = 1:repeats
-    LPIterations = OGLP(problem);
+    LPIterations = LP(problem);
 end
 LPTime = toc/repeats
 
@@ -172,10 +172,13 @@ X2 = -logspace(3,7,Npoints);
 X3 = logspace(3,7,Npoints);
 X4 = logspace(3,7,Npoints);
 [x1,x2,x3,x4]=ndgrid(X1,X2,X3,X4);
-l = 4;
+l = 4; 
 NIterates = Npoints^l;
 
 %556 for N =5 3to6
+
+
+
 %%
 RGDMinx = zeros(l,NIterates);
 tic
@@ -184,8 +187,8 @@ for i = 1:NIterates
     p(:,i) = - Binv*J'*R;
     RGDMinx(:,i) = [x1(i);x2(i);x3(i);x4(i)] +p(:,i);
 end
-toc
-%%
+RGDLPMinTime = toc
+% 
 RGDx = zeros(l,NIterates);
 tic
 for i = 1:NIterates
@@ -196,7 +199,7 @@ end
 toc
 %
 x = zeros(l,NIterates);
-tic
+RGDLPTime = toc
 for i = 1:NIterates
     [QFull,DFull] = eig(full(FormA([x1(i);x2(i);x3(i);x4(i)],problem.A,problem.A0)),'vector');
     if length(problem.ev)<length(DFull)
@@ -222,7 +225,7 @@ for i = 1:NIterates
     end
     x(:,i) = Binv*b;
 end
-toc
+LPTime = toc
 
 
 
